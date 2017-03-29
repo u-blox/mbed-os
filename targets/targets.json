@@ -1339,13 +1339,14 @@
         "core": "Cortex-M4F",
         "default_toolchain": "ARM",
         "supported_toolchains": ["GCC_ARM", "ARM", "IAR"],
-        "extra_labels": ["STM", "STM32F4", "STM32F437", "STM32F437VG","STM32F437xx"],
+        "extra_labels": ["STM", "STM32F4", "STM32F437", "STM32F437VG", "STM32F437xx", "FLASH_CMSIS_ALGO"],
         "macros": ["TRANSACTION_QUEUE_SIZE_SPI=2", "RTC_LSI=1"],
         "inherits": ["Target"],
-        "device_has": ["ANALOGIN", "ANALOGOUT", "I2C", "I2CSLAVE", "INTERRUPTIN", "PORTIN", "PORTINOUT", "PORTOUT", "PWMOUT", "SERIAL", "SLEEP", "RTC", "SPI", "SPISLAVE", "STDIO_MESSAGES", "TRNG"],
+        "device_has": ["ANALOGIN", "ANALOGOUT", "I2C", "I2CSLAVE", "INTERRUPTIN", "PORTIN", "PORTINOUT", "PORTOUT", "PWMOUT", "SERIAL", "SLEEP", "RTC", "SPI", "SPISLAVE", "STDIO_MESSAGES", "TRNG", "FLASH"],
         "features": ["LWIP"],        
         "release_versions": ["5"],
-        "device_name": "STM32F437VG"
+        "device_name": "STM32F437VG",
+        "bootloader_supported": true
         },
     "NZ32_SC151": {
         "inherits": ["Target"],
