@@ -10,6 +10,7 @@
 #include "mbed_assert.h"
 #include "rtos.h"
 #include "mbed_events.h"
+#include "emac_stack_mem.h"
 
 /*===========================================================================
 * DEFINES
@@ -119,34 +120,33 @@ static void packetIndication(void *dummy, cbWLAN_PacketIndicationInfo *packetInf
 
 static cb_boolean handleWlanTargetCopyFromDataFrame(uint8_t* buffer, cbWLANTARGET_dataFrame* frame, uint32_t size, uint32_t offsetInFrame)
 {
-    void* dummy = NULL;
-    emac_stack_mem_t** phead = (emac_stack_mem_chain_t **)&frame;
+    emac_stack_mem_chain_t** phead = (emac_stack_mem_chain_t **)&frame;
     emac_stack_mem_t* pbuf;
     uint32_t copySize, bytesCopied = 0, pbufOffset = 0;
 
     MBED_ASSERT(frame != NULL);
     MBED_ASSERT(buffer != NULL);
 
-    pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+    pbuf = emac_stack_mem_chain_dequeue(phead);
     while (pbuf != NULL) {
-        if ((pbufOffset + emac_stack_mem_len(dummy, pbuf)) >= offsetInFrame) {
-            copySize = cb_MIN(size, emac_stack_mem_len(dummy, pbuf) - (offsetInFrame - pbufOffset));
-            memcpy(buffer, (int8_t *)emac_stack_mem_ptr(dummy, pbuf) + (offsetInFrame - pbufOffset), copySize);
+        if ((pbufOffset + emac_stack_mem_len(pbuf)) >= offsetInFrame) {
+            copySize = cb_MIN(size, emac_stack_mem_len(pbuf) - (offsetInFrame - pbufOffset));
+            memcpy(buffer, (int8_t *)emac_stack_mem_ptr(pbuf) + (offsetInFrame - pbufOffset), copySize);
             buffer += copySize;
             bytesCopied += copySize;
-            pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+            pbuf = emac_stack_mem_chain_dequeue(phead);
             break;
         }
-        pbufOffset += emac_stack_mem_len(dummy, pbuf);
-        pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+        pbufOffset += emac_stack_mem_len(pbuf);
+        pbuf = emac_stack_mem_chain_dequeue(phead);
     }
 
     while (pbuf != NULL && bytesCopied < size) {
-        copySize = cb_MIN(emac_stack_mem_len(dummy, pbuf), size - bytesCopied);
-        memcpy(buffer, emac_stack_mem_ptr(dummy, pbuf), copySize);
+        copySize = cb_MIN(emac_stack_mem_len(pbuf), size - bytesCopied);
+        memcpy(buffer, emac_stack_mem_ptr(pbuf), copySize);
         buffer += copySize;
         bytesCopied += copySize;
-        pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+        pbuf = emac_stack_mem_chain_dequeue(phead);
     }
 
     MBED_ASSERT(bytesCopied <= size);
@@ -156,34 +156,33 @@ static cb_boolean handleWlanTargetCopyFromDataFrame(uint8_t* buffer, cbWLANTARGE
 
 static cb_boolean handleWlanTargetCopyToDataFrame(cbWLANTARGET_dataFrame* frame, uint8_t* buffer, uint32_t size, uint32_t offsetInFrame)
 {
-    void* dummy = NULL;
-    emac_stack_mem_t** phead = (emac_stack_mem_chain_t **)&frame;
+    emac_stack_mem_chain_t** phead = (emac_stack_mem_chain_t **)&frame;
     emac_stack_mem_t* pbuf;
     uint32_t copySize, bytesCopied = 0, pbufOffset = 0;
 
     MBED_ASSERT(frame != NULL);
     MBED_ASSERT(buffer != NULL);
 
-    pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+    pbuf = emac_stack_mem_chain_dequeue(phead);
     while (pbuf != NULL) {
-        if ((pbufOffset + emac_stack_mem_len(dummy, pbuf)) >= offsetInFrame) {
-            copySize = cb_MIN(size, emac_stack_mem_len(dummy, pbuf) - (offsetInFrame - pbufOffset));
-            memcpy((uint8_t *)emac_stack_mem_ptr(dummy, pbuf) + (offsetInFrame - pbufOffset), buffer, copySize);
+        if ((pbufOffset + emac_stack_mem_len(pbuf)) >= offsetInFrame) {
+            copySize = cb_MIN(size, emac_stack_mem_len(pbuf) - (offsetInFrame - pbufOffset));
+            memcpy((uint8_t *)emac_stack_mem_ptr(pbuf) + (offsetInFrame - pbufOffset), buffer, copySize);
             buffer += copySize;
             bytesCopied += copySize;
-            pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+            pbuf = emac_stack_mem_chain_dequeue(phead);
             break;
         }
-        pbufOffset += emac_stack_mem_len(dummy, pbuf);
-        pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+        pbufOffset += emac_stack_mem_len(pbuf);
+        pbuf = emac_stack_mem_chain_dequeue(phead);
     }
 
     while (pbuf != NULL && bytesCopied < size) {
-        copySize = cb_MIN(emac_stack_mem_len(dummy, pbuf), size - bytesCopied);
-        memcpy(emac_stack_mem_ptr(dummy, pbuf), buffer, copySize);
+        copySize = cb_MIN(emac_stack_mem_len(pbuf), size - bytesCopied);
+        memcpy(emac_stack_mem_ptr(pbuf), buffer, copySize);
         buffer += copySize;
         bytesCopied += copySize;
-        pbuf = emac_stack_mem_chain_dequeue(dummy, phead);
+        pbuf = emac_stack_mem_chain_dequeue(phead);
     }
 
     MBED_ASSERT(bytesCopied <= size);
@@ -193,22 +192,17 @@ static cb_boolean handleWlanTargetCopyToDataFrame(cbWLANTARGET_dataFrame* frame,
 
 static cbWLANTARGET_dataFrame* handleWlanTargetAllocDataFrame(uint32_t size)
 {
-    void* dummy = NULL;
-
-    return (cbWLANTARGET_dataFrame*)emac_stack_mem_alloc(dummy, size, 0);
+    return (cbWLANTARGET_dataFrame*)emac_stack_mem_alloc(size, 0);
 }
 
 static void handleWlanTargetFreeDataFrame(cbWLANTARGET_dataFrame* frame)
 {
-    void* dummy = NULL;
-
-    emac_stack_mem_free(dummy, (emac_stack_mem_t*)frame);
+    emac_stack_mem_free((emac_stack_mem_t*)frame);
 }
 
 static uint32_t handleWlanTargetGetDataFrameSize(cbWLANTARGET_dataFrame* frame)
 {
-    void* dummy = NULL;
-    return emac_stack_mem_chain_len(dummy, (emac_stack_mem_t*)frame);
+    return emac_stack_mem_chain_len((emac_stack_mem_t*)frame);
 }
 
 static uint8_t handleWlanTargetGetDataFrameTID(cbWLANTARGET_dataFrame* frame)
@@ -259,22 +253,22 @@ static void wifi_set_hwaddr(emac_interface_t *emac, uint8_t *addr)
 static void send_packet(emac_interface_t *emac, void *buf)
 {
     cbWLAN_sendPacket(buf);
-    emac_stack_mem_free(emac,buf);
+    emac_stack_mem_free(buf);
 }
 
 static bool wifi_link_out(emac_interface_t *emac, emac_stack_mem_t *buf)
 {
     (void)emac;
     // Break call chain to avoid the driver affecting stack usage for the IP stack thread too much
-    emac_stack_mem_t *new_buf = emac_stack_mem_alloc(emac, emac_stack_mem_chain_len(emac,buf),0);
+    emac_stack_mem_t *new_buf = emac_stack_mem_alloc(emac_stack_mem_chain_len(buf),0);
     if (new_buf != NULL) {
-        emac_stack_mem_copy(emac, new_buf, buf);
+        emac_stack_mem_copy(new_buf, buf);
         int id = cbMAIN_getEventQueue()->call(send_packet, emac, new_buf);
         if (id != 0) {
             cbMAIN_dispatchEventQueue();        
         }
         else {
-            emac_stack_mem_free(emac, new_buf);
+            emac_stack_mem_free(new_buf);
         }
     }
     return true;
