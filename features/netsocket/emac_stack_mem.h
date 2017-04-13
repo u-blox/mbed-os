@@ -16,7 +16,7 @@
 #ifndef MBED_EMAC_STACK_MEM_H
 #define MBED_EMAC_STACK_MEM_H
 
-#if DEVICE_EMAC
+//#if DEVICE_EMAC
 
 #include <stdint.h>
 
@@ -113,10 +113,10 @@ void emac_stack_mem_set_chain_len(emac_stack_mem_chain_t *chain, uint32_t len);
  */
 void emac_stack_mem_ref(emac_stack_mem_t *mem);
 
-#endif /* DEVICE_EMAC */
-
 #ifdef __cplusplus
 }
 #endif
+
+//#endif /* DEVICE_EMAC */
 
 #endif /* EMAC_MBED_STACK_MEM_h */

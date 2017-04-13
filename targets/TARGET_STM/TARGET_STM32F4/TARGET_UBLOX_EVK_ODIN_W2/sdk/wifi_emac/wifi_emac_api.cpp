@@ -1,4 +1,5 @@
-#if DEVICE_EMAC
+//TODO clarify DEVICE_EMAC vs DEVICE_WIFI
+#if DEVICE_WIFI
 
 #include <stdio.h>
 #include "cb_main.h"
@@ -50,6 +51,7 @@ static bool wifi_power_up(emac_interface_t *emac);
 static void wifi_power_down(emac_interface_t *emac);
 static void wifi_set_link_input_cb(emac_interface_t *emac, emac_link_input_fn input_cb, void *data);
 static void wifi_set_link_state_cb(emac_interface_t *emac, emac_link_state_change_fn state_cb, void *data);
+static void wifi_add_multicast_group(emac_interface_t *emac, uint8_t *address);
 
 /*===========================================================================
 * DEFINITIONS
@@ -67,7 +69,8 @@ const emac_interface_ops_t wifi_emac_interface = {
     .power_up = wifi_power_up,
     .power_down = wifi_power_down,
     .set_link_input_cb = wifi_set_link_input_cb,
-    .set_link_state_cb = wifi_set_link_state_cb
+    .set_link_state_cb = wifi_set_link_state_cb,
+    .add_multicast_group = wifi_add_multicast_group
 };
 
 static emac_interface_t* _intf = NULL;
@@ -319,12 +322,18 @@ static void wifi_set_link_state_cb(emac_interface_t *emac, emac_link_state_chang
     }
 }
 
+static void wifi_add_multicast_group(emac_interface_t */*emac*/, uint8_t */*address*/)
+{
+    //TODO
+}
+
 emac_interface_t* wifi_emac_get_interface()
 {
     if (_intf == NULL) {
         _intf = new emac_interface_t();
         _intf->hw = NULL;
-        memcpy((void*)&_intf->ops, &wifi_emac_interface, sizeof(wifi_emac_interface));
+        //memcpy((void*)&_intf->ops, &wifi_emac_interface, sizeof(wifi_emac_interface));
+        _intf->ops = &wifi_emac_interface;
     }
    return _intf;
 }

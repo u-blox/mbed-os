@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if DEVICE_EMAC
-
 #include "emac_api.h"
 #include "emac_stack_mem.h"
 #include "lwip/tcpip.h"
@@ -65,7 +63,7 @@ static void emac_lwip_state_change(void *data, bool up)
  * \param[in] action
  * \return ERR_OK or error code
  */
-err_t igmp_mac_filter(struct netif *netif, const ip4_addr_t *group, u8_t action)
+static err_t igmp_mac_filter(struct netif *netif, const ip4_addr_t *group, u8_t action)
 {
     emac_interface_t *emac = netif->state;
     if (emac->ops->add_multicast_group == NULL) {
@@ -106,7 +104,7 @@ err_t igmp_mac_filter(struct netif *netif, const ip4_addr_t *group, u8_t action)
  * \param[in] action
  * \return ERR_OK or error code
  */
-err_t mld_mac_filter(struct netif *netif, const ip6_addr_t *group, u8_t action)
+static err_t mld_mac_filter(struct netif *netif, const ip6_addr_t *group, u8_t action)
 {
     emac_interface_t *emac = netif->state;
     if (emac->ops->add_multicast_group == NULL) {
@@ -179,5 +177,3 @@ err_t emac_lwip_if_init(struct netif *netif)
 
     return err;
 }
-
-#endif /* DEVICE_EMAC */
