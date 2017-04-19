@@ -299,7 +299,7 @@ nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char
             return NSAPI_ERROR_DHCP_FAILURE;
         }
 
-        emac->connected = true;
+        //emac->connected = true;
     }
 
 #if ADDR_TIMEOUT
@@ -311,6 +311,8 @@ nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char
 #endif
 
     add_dns_addr(&emac->netif);
+
+    emac->connected = true;
 
     return 0;
 }
