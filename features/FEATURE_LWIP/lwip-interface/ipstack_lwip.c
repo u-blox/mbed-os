@@ -253,7 +253,7 @@ nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char
 #endif /* LWIP_IPV6 */
 
     u32_t ret;
-
+/* tfri
     if (!netif_is_link_up(&emac->netif)) {
         ret = sys_arch_sem_wait(&emac->linked, 15000);
 
@@ -261,7 +261,7 @@ nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char
             return NSAPI_ERROR_NO_CONNECTION;
         }
     }
-
+*/
 #if LWIP_IPV4
     if (!dhcp) {
         ip4_addr_t ip_addr;
@@ -342,6 +342,16 @@ nsapi_error_t mbed_ipstack_bringdown(emac_interface_t *emac)
     sys_sem_free(&emac->has_addr);
     sys_sem_new(&emac->has_addr, 0);
     emac->connected = false;
+
+    //Clear network settings tfri
+    //memset(&(emac->netif.ip_addr), 0, sizeof(ip_addr_t));
+    //memset(&(emac->netif.netmask), 0, sizeof(ip_addr_t));
+    //memset(&(emac->netif.gw), 0, sizeof(ip_addr_t));
+    ip_addr_set_zero(&(emac->netif.ip_addr));
+    ip_addr_set_zero(&(emac->netif.netmask));
+    ip_addr_set_zero(&(emac->netif.gw));
+    //end tfri
+
     return 0;
 }
 
