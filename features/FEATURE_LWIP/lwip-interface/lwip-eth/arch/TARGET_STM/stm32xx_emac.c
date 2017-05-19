@@ -20,7 +20,7 @@
 #define STM32XX_ETH_MTU_SIZE    (1500)
 #define STM32XX_ETH_IF_NAME     "en"
 
-ETH_HandleTypeDef EthHandle;
+ETH_HandleTypeDef   EthHandle;
 
 #if defined (__ICCARM__)   /*!< IAR Compiler */
   #pragma data_alignment=4
@@ -593,6 +593,8 @@ static bool stm32xx_eth_power_up(emac_interface_t *emac)
     sys_sem_new(&rx_ready_sem, 0);
 
     sys_mutex_new(&tx_lock_mutex);
+
+    NETIF_SET_CHECKSUM_CTRL(&(emac->netif), NETIF_CHECKSUM_DISABLE_ALL);
 
     /* task */
     sys_thread_new("_eth_arch_rx_task", _eth_arch_rx_task, emac, DEFAULT_THREAD_STACKSIZE, RECV_TASK_PRI);
