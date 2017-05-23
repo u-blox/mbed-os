@@ -63,14 +63,13 @@ static void mbed_lwip_socket_callback(struct netconn *nc, enum netconn_evt eh, u
 static nsapi_error_t mbed_lwip_err_remap(err_t err) {
     switch (err) {
         case ERR_OK:
-        //case ERR_CLSD:
+        case ERR_CLSD:
             return 0;
         case ERR_MEM:
             return NSAPI_ERROR_NO_MEMORY;
         case ERR_CONN:
         case ERR_RST:
         case ERR_ABRT:
-        case ERR_CLSD:
             return NSAPI_ERROR_NO_CONNECTION;
         case ERR_TIMEOUT:
         case ERR_RTE:
