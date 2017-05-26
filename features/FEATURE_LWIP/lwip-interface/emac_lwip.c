@@ -21,15 +21,29 @@
 #include "lwip/ip.h"
 #include "netif/etharp.h"
 
+#if EMAC_LWIP_L2_BRIDGE
+#include "emac_lwip_l2_bridge.h"
+#endif
+
 static err_t emac_lwip_low_level_output(struct netif *netif, struct pbuf *p)
 {
+#if EMAC_LWIP_L2_BRIDGE
+    return emac_lwip_l2b_output(netif, (emac_stack_mem_chain_t*) p);
+#else
     emac_interface_t *mac = (emac_interface_t *)netif->state;
     bool ret = mac->ops->link_out(mac, (emac_stack_mem_chain_t *)p);
     return ret ? ERR_OK : ERR_IF;
+#endif
 }
 
 static void emac_lwip_input(void *data, emac_stack_mem_t *buf)
 {
+#if EMAC_LWIP_L2_BRIDGE
+    struct netif *netif = (struct netif *)data;
+
+    emac_lwip_l2b_input(netif, buf);
+
+#else
     struct pbuf *p = (struct pbuf *)buf;
     struct netif *netif = (struct netif *)data;
 
@@ -39,6 +53,7 @@ static void emac_lwip_input(void *data, emac_stack_mem_t *buf)
 
         pbuf_free(p);
     }
+#endif
 }
 
 static void emac_lwip_state_change(void *data, bool up)
@@ -174,6 +189,12 @@ err_t emac_lwip_if_init(struct netif *netif)
     if (!emac->ops->power_up(emac)) {
         err = ERR_IF;
     }
+
+#if EMAC_LWIP_L2_BRIDGE
+    if(err == ERR_OK) {
+        emac_lwip_l2b_register_interface(netif);
+    }
+#endif
 
     return err;
 }
