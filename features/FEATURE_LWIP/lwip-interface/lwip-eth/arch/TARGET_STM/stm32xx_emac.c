@@ -128,7 +128,7 @@ static void _eth_arch_low_level_init()
 #endif
     EthHandle.Init.MACAddr = &MACAddr[0];
     EthHandle.Init.RxMode = ETH_RXINTERRUPT_MODE;
-    EthHandle.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
+    EthHandle.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
     EthHandle.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
     hal_eth_init_status = HAL_ETH_Init(&EthHandle);
 
