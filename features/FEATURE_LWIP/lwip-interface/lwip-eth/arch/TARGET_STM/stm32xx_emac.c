@@ -597,10 +597,6 @@ static bool stm32xx_eth_power_up(emac_interface_t *emac)
     /* initialize the hardware */
     _eth_arch_low_level_init();
 
-    if(EthHandle.Init.ChecksumMode == ETH_CHECKSUM_BY_HARDWARE) {
-        NETIF_SET_CHECKSUM_CTRL(&(emac->netif), NETIF_CHECKSUM_DISABLE_ALL);
-    }
-
     /* task */
     sys_thread_new("_eth_arch_rx_task", _eth_arch_rx_task, emac, DEFAULT_THREAD_STACKSIZE, RECV_TASK_PRI);
     sys_thread_new("_eth_arch_phy_task", _eth_arch_phy_task, emac, DEFAULT_THREAD_STACKSIZE, PHY_TASK_PRI);
