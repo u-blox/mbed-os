@@ -69,10 +69,11 @@ void mbed_ipstack_set_stack(emac_interface_t *emac, nsapi_stack_t *stack);
  * @param    ip         IP address to be used for the interface as "W:X:Y:Z" or NULL
  * @param    netmask    Net mask to be used for the interface as "W:X:Y:Z" or NULL
  * @param    gw         Gateway address to be used for the interface as "W:X:Y:Z" or NULL
+ * @param    emac_flags Bitmask configuration (e.g. EMAC_FLAGS_BROADCAST_TO_SELF)
  * @return              NSAPI_ERROR_OK on success, or error code
  */
 nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char *ip,
-                                   const char *netmask, const char *gw);
+                                   const char *netmask, const char *gw, u32_t emac_flags);
 
 /** Disconnect interface from the network
  *

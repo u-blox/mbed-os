@@ -22,6 +22,8 @@
 #include "arch/sys_arch.h"
 #include "lwip/netif.h"
 
+#define EMAC_FLAGS_BROADCAST_TO_SELF ((u32_t)0x00000001)
+
 typedef struct emac_interface emac_interface_t;
 
 /**
@@ -171,6 +173,7 @@ typedef struct emac_interface {
     bool connected;
     bool dhcp;
     char hwaddr[6];
+    u32_t flags;
     struct netif netif;
 } emac_interface_t;
 

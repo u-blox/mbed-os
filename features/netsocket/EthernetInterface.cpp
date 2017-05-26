@@ -53,7 +53,8 @@ nsapi_error_t EthernetInterface::connect()
     return mbed_ipstack_bringup(_stack.emac, _dhcp,
             _ip_address[0] ? _ip_address : 0,
             _netmask[0] ? _netmask : 0,
-            _gateway[0] ? _gateway : 0);
+            _gateway[0] ? _gateway : 0,
+            0);
 }
 
 nsapi_error_t EthernetInterface::disconnect()

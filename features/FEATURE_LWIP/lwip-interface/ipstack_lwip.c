@@ -221,7 +221,7 @@ nsapi_error_t mbed_ipstack_add_netif(emac_interface_t *emac, bool default_if)
     return NSAPI_ERROR_OK;
 }
 
-nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char *ip, const char *netmask, const char *gw)
+nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char *ip, const char *netmask, const char *gw, u32_t flags)
 {
     // Check if we've already connected
     if (emac->connected) {
@@ -302,6 +302,8 @@ nsapi_error_t mbed_ipstack_bringup(emac_interface_t *emac, bool dhcp, const char
 #endif
 
     add_dns_addr(&emac->netif);
+
+    emac->flags = flags;
 
     emac->connected = true;
 
