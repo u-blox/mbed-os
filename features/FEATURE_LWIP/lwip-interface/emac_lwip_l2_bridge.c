@@ -18,6 +18,7 @@
 #include "emac_api.h"
 #include "string.h"
 #include "mbed_assert.h"
+#include "sys.h"
 
 #define EMAC_LWIP_L2B_MAC_ADDR_SIZE (6)
 
@@ -52,6 +53,7 @@ static bool                     _initialised = false;
 static int                      _bridge_count = 0;
 static emac_lwip_l2b_entry_t    *_bridge = 0;
 static emac_lwip_l2b_netif_t    _netifs[EMAC_LWIP_L2B_MAX_NETIFS];
+static sys_mutex_t              _mutex;
 
 static emac_lwip_l2b_entry_t* get_bridge_entry(uint8_t *mac_address)
 {
@@ -161,7 +163,7 @@ static err_t output_from_local_to_netifs(emac_stack_mem_chain_t *buf)
             emac = (emac_interface_t*)(_netifs[i].net->state);
             MBED_ASSERT(emac != 0);
 
-            //TODO: Assuming CRC done by HW
+            //TODO: Works if each IF copies data or is done with tx when link_out is returned
             memcpy(mac_src, _netifs[i].net->hwaddr, EMAC_LWIP_L2B_MAC_ADDR_SIZE);
 
             ok = emac->ops->link_out(emac, buf);
@@ -240,6 +242,8 @@ err_t emac_lwip_l2b_register_interface(struct netif *net)
     MBED_ASSERT(net != 0);
 
     if(!_initialised) {
+        sys_mutex_new(&_mutex);
+
         for(int i = 0; i < EMAC_LWIP_L2B_MAX_NETIFS; i++) {
             _netifs[i].active = false;
         }
@@ -274,11 +278,13 @@ err_t emac_lwip_l2b_output(struct netif *netif, emac_stack_mem_chain_t *buf)
     }
     //Other
     else {
+        sys_mutex_lock(&_mutex);
         emac_lwip_l2b_entry_t *entry = get_bridge_entry(mac_dest);
 
         //Forward
         if(entry != 0) {
             emac_interface_t *emac = (emac_interface_t *)(entry->net->state);
+            sys_mutex_unlock(&_mutex);
 
             //TODO: Assuming CRC done by HW
             memcpy(mac_src, netif->hwaddr, EMAC_LWIP_L2B_MAC_ADDR_SIZE);
@@ -291,6 +297,7 @@ err_t emac_lwip_l2b_output(struct netif *netif, emac_stack_mem_chain_t *buf)
         }
         //Flood
         else {
+            sys_mutex_unlock(&_mutex);
             res = output_from_local_to_netifs(buf);
         }
     }
@@ -306,11 +313,14 @@ err_t emac_lwip_l2b_input(struct netif *net, emac_stack_mem_t *buf)
     err_t   res;
     bool    free_msg = true;
 
+    emac_stack_mem_ref(buf);
+
     u8_t    *mac_src = EMAC_LWIP_L2B_MAC_SRC(buf);
     u8_t    *mac_dest = EMAC_LWIP_L2B_MAC_DEST(buf);
 
     //All
     if(EMAC_LWIP_L2B_IS_MULTICAST(mac_dest)) {// || EMAC_LWIP_L2B_IS_BROADCAST(mac_dest)) {
+
         // Netifs
         res = output_from_netif_to_netifs(net, buf);
 
@@ -329,25 +339,33 @@ err_t emac_lwip_l2b_input(struct netif *net, emac_stack_mem_t *buf)
     }
     //Other
     else {
+        sys_mutex_lock(&_mutex);
         emac_lwip_l2b_entry_t *entry = get_bridge_entry(mac_dest);
 
         //Forward
         if(entry != 0) {
             emac_interface_t *emac = (emac_interface_t *)(entry->net->state);
+            sys_mutex_unlock(&_mutex);
             MBED_ASSERT(emac != 0);
 
             res = emac->ops->link_out(emac, buf);
         }
         //Flood
         else {
+            sys_mutex_unlock(&_mutex);
             res = output_from_netif_to_netifs(net, buf);
         }
+
     }
 
     //Touch entry for source mac address
+    sys_mutex_lock(&_mutex);
     touch_bridge_entry(net, mac_src);
+    sys_mutex_unlock(&_mutex);
 
-    //If fail, release buffer TODO
+    emac_stack_mem_free(buf); // To match mem_ref above
+
+    //Release buffer unless IP stack received message
     if(free_msg) {
         emac_stack_mem_free(buf);
     }
