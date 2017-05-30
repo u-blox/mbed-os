@@ -467,10 +467,49 @@ static nsapi_error_t mbed_lwip_setsockopt(nsapi_stack_t *stack, nsapi_socket_t h
                 s->conn->pcb.tcp->so_options &= ~SOF_REUSEADDR;
             }
             return 0;
+        
+        case NSAPI_JOINMULTI:
+            {
+                err_t err;
+                nsapi_error_t ret_val = NSAPI_ERROR_UNSUPPORTED;
+                nsapi_mreq_t *mreq = (nsapi_mreq_t*)optval;
+                if(optlen != sizeof(nsapi_mreq_t) || s->conn->type != NETCONN_UDP) {
+                    return NSAPI_ERROR_UNSUPPORTED;
+                }
+                
+                ip_addr_t multi_addr;
+                ip_addr_t intf_addr;
+                convert_mbed_addr_to_lwip(&multi_addr, &mreq->multi_addr);
+                convert_mbed_addr_to_lwip(&intf_addr, &mreq->intf_addr);
+                err = netconn_join_leave_group(s->conn, &multi_addr, &intf_addr, NETCONN_JOIN);
+                if (err != ERR_OK) {
+                    return mbed_lwip_err_remap(err);
+                }
+                return 0;
+            }
+        case NSAPI_LEAVEMULTI:
+            {
+                err_t err;
+                nsapi_error_t ret_val = NSAPI_ERROR_UNSUPPORTED;
+                nsapi_mreq_t *mreq = (nsapi_mreq_t*)optval;
+                if(optlen != sizeof(nsapi_mreq_t) || s->conn->type != NETCONN_UDP) {
+                    return NSAPI_ERROR_UNSUPPORTED;
+                }
+                
+                ip_addr_t multi_addr;
+                ip_addr_t intf_addr;
+                convert_mbed_addr_to_lwip(&multi_addr, &mreq->multi_addr);
+                convert_mbed_addr_to_lwip(&intf_addr, &mreq->intf_addr);
+                err = netconn_join_leave_group(s->conn, &multi_addr, &intf_addr, NETCONN_LEAVE);
+                if (err != ERR_OK) {
+                    return mbed_lwip_err_remap(err);
+                }
+                return 0;
+            }
 
-        default:
-            return NSAPI_ERROR_UNSUPPORTED;
-    }
+            default:
+                return NSAPI_ERROR_UNSUPPORTED;
+        }
 }
 
 static void mbed_lwip_socket_attach(nsapi_stack_t *stack, nsapi_socket_t handle, void (*callback)(void *), void *data)
