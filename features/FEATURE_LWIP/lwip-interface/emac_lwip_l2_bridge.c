@@ -20,7 +20,9 @@
 #include "mbed_assert.h"
 #include "sys.h"
 
-#define EMAC_LWIP_L2B_MAC_ADDR_SIZE (6)
+#define EMAC_LWIP_L2B_MAC_ADDR_SIZE         (6)
+#define EMAC_LWIP_L2B_THREAD_STACKSIZE      (256)
+#define EMAC_LWIP_L2B_THREAD_PRIO           (osPriorityAboveNormal)
 
 #define EMAC_LWIP_L2B_MAC_SRC(buf)  (&(((u8_t*)emac_stack_mem_ptr(buf))[EMAC_LWIP_L2B_MAC_ADDR_SIZE]))
 #define EMAC_LWIP_L2B_MAC_DEST(buf) ((u8_t*)emac_stack_mem_ptr(buf))
@@ -41,10 +43,11 @@ typedef struct emac_lwip_l2b_entry_s {
 
     struct netif                    *net;
     u8_t                            mac_address[EMAC_LWIP_L2B_MAC_ADDR_SIZE];
+    int                             ticks;
 } emac_lwip_l2b_entry_t;
 
 typedef struct {
-    bool active;
+    bool    active;
 
     struct netif *net;
 } emac_lwip_l2b_netif_t;
@@ -54,6 +57,45 @@ static int                      _bridge_count = 0;
 static emac_lwip_l2b_entry_t    *_bridge = 0;
 static emac_lwip_l2b_netif_t    _netifs[EMAC_LWIP_L2B_MAX_NETIFS];
 static sys_mutex_t              _mutex;
+static sys_thread_t             _thread;
+
+static void timer()
+{
+    emac_lwip_l2b_entry_t   *next;
+    emac_lwip_l2b_entry_t   *entry;
+
+    while(true) {
+
+        sys_msleep(EMAC_LWIP_L2B_TIMER_INTERVAL);
+
+        sys_mutex_lock(&_mutex);
+        entry = _bridge;
+
+        while(entry != 0) {
+            next = entry->next;
+
+            entry->ticks++;
+
+            if(entry->ticks > EMAC_LWIP_L2B_ENTRY_TIMEOUT) {
+                if(entry->previous != 0) {
+                    entry->previous->next = entry->next;
+                }
+                if(entry->next != 0) {
+                    entry->next->previous = entry->previous;
+                }
+                if(entry == _bridge) {
+                    _bridge = entry->next;
+                }
+
+                free(entry);
+                _bridge_count--;
+            }
+
+            entry = next;
+        }
+        sys_mutex_unlock(&_mutex);
+    }
+}
 
 static emac_lwip_l2b_entry_t* get_bridge_entry(uint8_t *mac_address)
 {
@@ -227,7 +269,8 @@ static void touch_bridge_entry(struct netif *net, u8_t *mac_address)
     if(entry != 0) {
         move_bridge_entry_first(entry);
 
-        entry->net = net;  //Just to make sure
+        entry->net = net;
+        entry->ticks = 0;
     }
     else {
         entry = alloc_bridge_entry(net, mac_address);
@@ -247,6 +290,9 @@ err_t emac_lwip_l2b_register_interface(struct netif *net)
         for(int i = 0; i < EMAC_LWIP_L2B_MAX_NETIFS; i++) {
             _netifs[i].active = false;
         }
+
+        _thread = sys_thread_new("emac_lwip_l2b:_thread", timer, 0, EMAC_LWIP_L2B_THREAD_STACKSIZE, EMAC_LWIP_L2B_THREAD_PRIO);
+
         _initialised = true;
     }
 
@@ -284,10 +330,11 @@ err_t emac_lwip_l2b_output(struct netif *netif, emac_stack_mem_chain_t *buf)
         //Forward
         if(entry != 0) {
             emac_interface_t *emac = (emac_interface_t *)(entry->net->state);
-            sys_mutex_unlock(&_mutex);
 
-            //TODO: Assuming CRC done by HW
-            memcpy(mac_src, netif->hwaddr, EMAC_LWIP_L2B_MAC_ADDR_SIZE);
+            if(netif != entry->net) {
+                memcpy(mac_src, entry->net->hwaddr, EMAC_LWIP_L2B_MAC_ADDR_SIZE);
+            }
+            sys_mutex_unlock(&_mutex);
 
             ok = emac->ops->link_out(emac, buf);
 

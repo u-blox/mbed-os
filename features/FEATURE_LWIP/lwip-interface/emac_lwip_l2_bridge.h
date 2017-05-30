@@ -25,6 +25,8 @@
 
 #define EMAC_LWIP_L2B_MAX_BRIDGE_ENTRIES    (10)
 #define EMAC_LWIP_L2B_MAX_NETIFS            (3)
+#define EMAC_LWIP_L2B_TIMER_INTERVAL        (1000) //~timer interval in ms
+#define EMAC_LWIP_L2B_ENTRY_TIMEOUT         (120)  //timer ticks before removing inactive L2B entry
 
 err_t emac_lwip_l2b_register_interface(struct netif *netif);
 
