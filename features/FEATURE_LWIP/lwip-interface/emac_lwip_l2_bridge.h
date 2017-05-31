@@ -23,10 +23,18 @@
 #include "lwip/netif.h"
 #include "emac_stack_mem.h"
 
+#ifndef EMAC_LWIP_L2B_MAX_BRIDGE_ENTRIES
 #define EMAC_LWIP_L2B_MAX_BRIDGE_ENTRIES    (10)
-#define EMAC_LWIP_L2B_MAX_NETIFS            (3)
+#endif
+#ifndef EMAC_LWIP_L2B_MAX_NETIFS
+#define EMAC_LWIP_L2B_MAX_NETIFS            (2)
+#endif
+#ifndef EMAC_LWIP_L2B_TIMER_INTERVAL
 #define EMAC_LWIP_L2B_TIMER_INTERVAL        (1000) //~timer interval in ms
+#endif
+#ifndef EMAC_LWIP_L2B_ENTRY_TIMEOUT
 #define EMAC_LWIP_L2B_ENTRY_TIMEOUT         (120)  //timer ticks before removing inactive L2B entry
+#endif
 
 err_t emac_lwip_l2b_register_interface(struct netif *netif);
 
