@@ -213,6 +213,7 @@ typedef enum nsapi_socket_option {
     NSAPI_RCVBUF,    /*!< Sets recv buffer size */
     NSAPI_JOINMULTI, /*!< Join multicast group */
     NSAPI_LEAVEMULTI,/*!< Leave multicast group */
+    NSAPI_MULTITTL,  /*!< Multicast TTL */
 } nsapi_socket_option_t;
 
 /* Backwards compatibility - previously didn't distinguish stack and socket options */
