@@ -12,6 +12,8 @@
 #include "mbed_error.h"
 #include "nsapi_types.h"
 
+#define RECV_TASK_STACKSIZE     (768)
+#define PHY_TASK_STACKSIZE      (512)
 #define RECV_TASK_PRI           (osPriorityHigh)
 #define PHY_TASK_PRI            (osPriorityLow)
 #define PHY_TASK_WAIT           (200)
@@ -598,8 +600,8 @@ static bool stm32xx_eth_power_up(emac_interface_t *emac)
     _eth_arch_low_level_init();
 
     /* task */
-    sys_thread_new("_eth_arch_rx_task", _eth_arch_rx_task, emac, DEFAULT_THREAD_STACKSIZE, RECV_TASK_PRI);
-    sys_thread_new("_eth_arch_phy_task", _eth_arch_phy_task, emac, DEFAULT_THREAD_STACKSIZE, PHY_TASK_PRI);
+    sys_thread_new("_eth_arch_rx_task", _eth_arch_rx_task, emac, RECV_TASK_STACKSIZE, RECV_TASK_PRI);
+    sys_thread_new("_eth_arch_phy_task", _eth_arch_phy_task, emac, PHY_TASK_STACKSIZE, PHY_TASK_PRI);
 
     return true;
 }
