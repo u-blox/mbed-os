@@ -12,8 +12,12 @@
 #include "mbed_error.h"
 #include "nsapi_types.h"
 
-#define RECV_TASK_STACKSIZE     (768)
-#define PHY_TASK_STACKSIZE      (512)
+#ifndef RECV_TASK_STACKSIZE
+#define RECV_TASK_STACKSIZE     (DEFAULT_THREAD_STACKSIZE)
+#endif
+#ifndef PHY_TASK_STACKSIZE
+#define PHY_TASK_STACKSIZE      (DEFAULT_THREAD_STACKSIZE)
+#endif
 #define RECV_TASK_PRI           (osPriorityHigh)
 #define PHY_TASK_PRI            (osPriorityLow)
 #define PHY_TASK_WAIT           (200)
