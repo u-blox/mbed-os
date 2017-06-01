@@ -20,7 +20,7 @@
 emac_stack_mem_t *emac_stack_mem_alloc(uint32_t size, uint32_t align)
 {
 
-    struct pbuf *pbuf = pbuf_alloc(PBUF_RAW, size + align, PBUF_RAM);
+    struct pbuf *pbuf = pbuf_alloc(PBUF_RAW, size + align, PBUF_POOL);
     if (pbuf == NULL) {
         return NULL;
     }
