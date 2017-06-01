@@ -211,6 +211,9 @@ typedef enum nsapi_socket_option {
     NSAPI_LINGER,    /*!< Keeps close from returning until queues empty */
     NSAPI_SNDBUF,    /*!< Sets send buffer size */
     NSAPI_RCVBUF,    /*!< Sets recv buffer size */
+    NSAPI_JOINMULTI, /*!< Join multicast group */
+    NSAPI_LEAVEMULTI,/*!< Leave multicast group */
+    NSAPI_MULTITTL,  /*!< Multicast TTL */
 } nsapi_socket_option_t;
 
 /* Backwards compatibility - previously didn't distinguish stack and socket options */
@@ -229,6 +232,14 @@ typedef struct nsapi_wifi_ap {
     uint8_t channel;
 } nsapi_wifi_ap_t;
 
+/** nsapi_mreq structure
+ * 
+ *  Structure used for joining/leaving a multicast group
+ */
+typedef struct nsapi_mreq {
+    nsapi_addr_t multi_addr;
+    nsapi_addr_t intf_addr;
+} nsapi_mreq_t;
 
 /** nsapi_stack structure
  *
