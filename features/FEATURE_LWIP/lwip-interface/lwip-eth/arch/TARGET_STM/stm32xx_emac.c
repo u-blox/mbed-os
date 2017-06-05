@@ -28,6 +28,9 @@
 
 ETH_HandleTypeDef   EthHandle;
 
+static volatile int _dbg_busy_cnt1 = 0;
+static volatile int _dbg_busy_cnt2 = 0;
+
 #if defined (__ICCARM__)   /*!< IAR Compiler */
   #pragma data_alignment=4
 #endif
@@ -63,16 +66,14 @@ static void _eth_arch_rx_task(void *arg);
 static void _eth_arch_phy_task(void *arg);
 
 #if LWIP_IPV4
-//static err_t _eth_arch_netif_output_ipv4(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr);
+static err_t _eth_arch_netif_output_ipv4(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr);
 #endif
 #if LWIP_IPV6
 static err_t _eth_arch_netif_output_ipv6(struct netif *netif, struct pbuf *q, const ip6_addr_t *ipaddr);
 #endif
 
-//static err_t _eth_arch_low_level_output(struct netif *netif, struct pbuf *p);
-static bool _eth_arch_low_level_output(emac_interface_t *emac, emac_stack_mem_chain_t *chain);
-
-static emac_stack_mem_t * _eth_arch_low_level_input(emac_interface_t *emac, bool *frame_available);
+static err_t _eth_arch_low_level_output(struct netif *netif, struct pbuf *p);
+static struct pbuf * _eth_arch_low_level_input(struct netif *netif, bool *frame_available);
 __weak uint8_t mbed_otp_mac_address(char *mac);
 void mbed_default_mac_address(char *mac);
 
@@ -108,10 +109,8 @@ void ETH_IRQHandler(void)
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
  */
-//static void _eth_arch_low_level_init(struct netif *netif)
-static void _eth_arch_low_level_init()
+static void _eth_arch_low_level_init(struct netif *netif)
 {
-    //uint32_t regvalue = 0;
     HAL_StatusTypeDef hal_eth_status;
 
     /* Init ETH */
@@ -147,6 +146,23 @@ static void _eth_arch_low_level_init()
     MBED_ASSERT(hal_eth_status == HAL_OK);
 
  #if LWIP_ARP || LWIP_ETHERNET
+    /* set MAC hardware address length */
+    netif->hwaddr_len = ETH_HWADDR_LEN;
+
+    /* set MAC hardware address */
+    netif->hwaddr[0] = EthHandle.Init.MACAddr[0];
+    netif->hwaddr[1] = EthHandle.Init.MACAddr[1];
+    netif->hwaddr[2] = EthHandle.Init.MACAddr[2];
+    netif->hwaddr[3] = EthHandle.Init.MACAddr[3];
+    netif->hwaddr[4] = EthHandle.Init.MACAddr[4];
+    netif->hwaddr[5] = EthHandle.Init.MACAddr[5];
+
+    /* maximum transfer unit */
+    netif->mtu = STM32XX_ETH_MTU_SIZE;
+
+    /* device capabilities */
+    /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
+    netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
     /* Enable MAC and DMA transmission and reception */
     hal_eth_status = HAL_ETH_Start(&EthHandle);
@@ -170,13 +186,10 @@ static void _eth_arch_low_level_init()
  *       dropped because of memory failure (except for the TCP timers).
  */
 
-static bool _eth_arch_low_level_output(emac_interface_t *emac, emac_stack_mem_chain_t *chain)
+static err_t _eth_arch_low_level_output(struct netif *netif, struct pbuf *p)
 {
-    bool ok = false;
-
-    sys_mutex_lock(&tx_lock_mutex);
-
-    emac_stack_mem_t *q;
+    err_t errval;
+    struct pbuf *q;
     uint8_t *buffer = (uint8_t*)(EthHandle.TxDesc->Buffer1Addr);
     __IO ETH_DMADescTypeDef *DmaTxDesc;
     uint32_t framelength = 0;
@@ -186,29 +199,33 @@ static bool _eth_arch_low_level_output(emac_interface_t *emac, emac_stack_mem_ch
     DmaTxDesc = EthHandle.TxDesc;
     bufferoffset = 0;
 
+    sys_mutex_lock(&tx_lock_mutex);
+
     /* copy frame from pbufs to driver buffers */
-    for (q = emac_stack_mem_chain_dequeue(&chain); q != NULL; q = emac_stack_mem_chain_dequeue(&chain)) {
+    for (q = p; q != NULL; q = q->next) {
         /* Is this buffer available? If not, goto error */
         if ((DmaTxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET) {
-            //errval = ERR_USE;
+            errval = ERR_USE;
+            _dbg_busy_cnt1++;
             goto error;
         }
 
         /* Get bytes in current lwIP buffer */
-        byteslefttocopy =  emac_stack_mem_len(q);
+        byteslefttocopy = q->len;
         payloadoffset = 0;
 
         /* Check if the length of data to copy is bigger than Tx buffer size*/
         while ((byteslefttocopy + bufferoffset) > ETH_TX_BUF_SIZE) {
             /* Copy data to Tx buffer*/
-             memcpy((uint8_t*)((uint8_t*)buffer + bufferoffset), (uint8_t*)((uint8_t*)emac_stack_mem_ptr(q) + payloadoffset), (ETH_TX_BUF_SIZE - bufferoffset));
+            memcpy((uint8_t*)((uint8_t*)buffer + bufferoffset), (uint8_t*)((uint8_t*)q->payload + payloadoffset), (ETH_TX_BUF_SIZE - bufferoffset));
 
             /* Point to next descriptor */
             DmaTxDesc = (ETH_DMADescTypeDef*)(DmaTxDesc->Buffer2NextDescAddr);
 
             /* Check if the buffer is available */
             if ((DmaTxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET) {
-                //errval = ERR_USE;
+                errval = ERR_USE;
+                _dbg_busy_cnt2++;
                 goto error;
             }
 
@@ -221,7 +238,7 @@ static bool _eth_arch_low_level_output(emac_interface_t *emac, emac_stack_mem_ch
         }
 
         /* Copy the remaining bytes */
-        memcpy((uint8_t*)((uint8_t*)buffer + bufferoffset), (uint8_t*)((uint8_t*)emac_stack_mem_ptr(q) + payloadoffset), byteslefttocopy);
+        memcpy((uint8_t*)((uint8_t*)buffer + bufferoffset), (uint8_t*)((uint8_t*)q->payload + payloadoffset), byteslefttocopy);
         bufferoffset = bufferoffset + byteslefttocopy;
         framelength = framelength + byteslefttocopy;
     }
@@ -229,9 +246,7 @@ static bool _eth_arch_low_level_output(emac_interface_t *emac, emac_stack_mem_ch
     /* Prepare transmit descriptors to give to DMA */
     HAL_ETH_TransmitFrame(&EthHandle, framelength);
 
-    //errval = ERR_OK;
-
-    ok = true;
+    errval = ERR_OK;
 
 error:
 
@@ -246,7 +261,7 @@ error:
 
     sys_mutex_unlock(&tx_lock_mutex);
 
-    return ok;
+    return errval;
 }
 
 
@@ -258,11 +273,10 @@ error:
  * @return a pbuf filled with the received packet (including MAC header)
  *         NULL on memory error
  */
-static emac_stack_mem_t * _eth_arch_low_level_input(emac_interface_t *emac, bool *frame_available)
+static struct pbuf * _eth_arch_low_level_input(struct netif *netif, bool *frame_available)
 {
-    emac_stack_mem_t *p = NULL;
-    emac_stack_mem_t *q;
-    emac_stack_mem_t *tmp;
+    struct pbuf *p = NULL;
+    struct pbuf *q;
     uint16_t len = 0;
     uint8_t *buffer;
     __IO ETH_DMADescTypeDef *dmarxdesc;
@@ -285,21 +299,20 @@ static emac_stack_mem_t * _eth_arch_low_level_input(emac_interface_t *emac, bool
 
     if (len > 0) {
         /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-        p = emac_stack_mem_alloc(len, 0);
+        p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
     }
 
     if (p != NULL) {
-        tmp = p;
         dmarxdesc = EthHandle.RxFrameInfos.FSRxDesc;
         bufferoffset = 0;
-        for (q = emac_stack_mem_chain_dequeue(&tmp); q != NULL; q = emac_stack_mem_chain_dequeue(&tmp)) {
-            byteslefttocopy = emac_stack_mem_len(q);
+        for (q = p; q != NULL; q = q->next) {
+            byteslefttocopy = q->len;
             payloadoffset = 0;
 
             /* Check if the length of bytes to copy in current pbuf is bigger than Rx buffer size*/
             while ((byteslefttocopy + bufferoffset) > ETH_RX_BUF_SIZE) {
                 /* Copy data to pbuf */
-                memcpy((uint8_t*)((uint8_t*)emac_stack_mem_ptr(q) + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), (ETH_RX_BUF_SIZE - bufferoffset));
+                memcpy((uint8_t*)((uint8_t*)q->payload + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), (ETH_RX_BUF_SIZE - bufferoffset));
 
                 /* Point to next descriptor */
                 dmarxdesc = (ETH_DMADescTypeDef*)(dmarxdesc->Buffer2NextDescAddr);
@@ -310,7 +323,7 @@ static emac_stack_mem_t * _eth_arch_low_level_input(emac_interface_t *emac, bool
                 bufferoffset = 0;
             }
             /* Copy remaining data in pbuf */
-            memcpy((uint8_t*)((uint8_t*)emac_stack_mem_ptr(q) + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), byteslefttocopy);
+            memcpy((uint8_t*)((uint8_t*)q->payload + payloadoffset), (uint8_t*)((uint8_t*)buffer + bufferoffset), byteslefttocopy);
             bufferoffset = bufferoffset + byteslefttocopy;
         }
 
@@ -344,15 +357,16 @@ static emac_stack_mem_t * _eth_arch_low_level_input(emac_interface_t *emac, bool
  */
 static void _eth_arch_rx_task(void *arg)
 {
-    emac_interface_t   *emac = (emac_interface_t*)arg;
-    emac_stack_mem_chain_t *p;
-    bool frame_available;
+    struct netif   *netif = (struct netif*)arg;
+    struct pbuf    *p;
+	
+	bool	frame_available;
 
     while (1) {
         sys_arch_sem_wait(&rx_ready_sem, 0);
 
         do {
-            p = _eth_arch_low_level_input(emac, &frame_available);
+            p = _eth_arch_low_level_input(netif, &frame_available);
             if (p != NULL) {
                  emac_link_input_cb(emac_link_input_cb_data, p);
             }
@@ -367,10 +381,9 @@ static void _eth_arch_rx_task(void *arg)
  */
 static void _eth_arch_phy_task(void *arg)
 {
-    emac_interface_t *emac = (emac_interface_t*)arg;
     uint32_t phy_status = 0;
 
-    MBED_ASSERT(emac != NULL);
+    (void)arg;
 
     while (1) {
         uint32_t status;
@@ -396,14 +409,14 @@ static void _eth_arch_phy_task(void *arg)
  * \return ERR_OK or error code
  */
 #if LWIP_IPV4
-//static err_t _eth_arch_netif_output_ipv4(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
-//{
-//    /* Only send packet is link is up */
-//    if (netif->flags & NETIF_FLAG_LINK_UP) {
-//        return etharp_output(netif, q, ipaddr);
-//    }
-//    return ERR_CONN;
-//}
+static err_t _eth_arch_netif_output_ipv4(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
+{
+    /* Only send packet is link is up */
+    if (netif->flags & NETIF_FLAG_LINK_UP) {
+        return etharp_output(netif, q, ipaddr);
+    }
+    return ERR_CONN;
+}
 #endif
 
 /**
@@ -426,7 +439,61 @@ static err_t _eth_arch_netif_output_ipv6(struct netif *netif, struct pbuf *q, co
 }
 #endif
 
+/**
+ * Should be called at the beginning of the program to set up the
+ * network interface.
+ *
+ * This function should be passed as a parameter to netif_add().
+ *
+ * @param[in] netif the lwip network interface structure for this lpc_enetif
+ * @return ERR_OK if the loopif is initialized
+ *         ERR_MEM if private data couldn't be allocated
+ *         any other err_t on error
+ */
+err_t eth_arch_enetif_init(struct netif *netif)
+{
+    /* set MAC hardware address */
+    netif->hwaddr_len = ETH_HWADDR_LEN;
 
+    /* maximum transfer unit */
+    netif->mtu = 1500;
+
+    /* device capabilities */
+    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_ETHERNET;
+
+#if LWIP_NETIF_HOSTNAME
+    /* Initialize interface hostname */
+    netif->hostname = "lwipstm32";
+#endif /* LWIP_NETIF_HOSTNAME */
+
+    netif->name[0] = STM32XX_ETH_IF_NAME[0];
+    netif->name[1] = STM32XX_ETH_IF_NAME[1];
+
+#if LWIP_IPV4
+    netif->output = _eth_arch_netif_output_ipv4;
+    netif->flags |= NETIF_FLAG_IGMP;
+#endif
+#if LWIP_IPV6
+    netif->output_ip6 = _eth_arch_netif_output_ipv6;
+    netif->flags |= NETIF_FLAG_MLD6;
+#endif
+
+    netif->linkoutput = _eth_arch_low_level_output;
+
+    /* semaphore */
+    sys_sem_new(&rx_ready_sem, 0);
+
+    sys_mutex_new(&tx_lock_mutex);
+
+    /* task */
+    sys_thread_new("_eth_arch_rx_task", _eth_arch_rx_task, netif, RECV_TASK_STACKSIZE, RECV_TASK_PRI);
+    sys_thread_new("_eth_arch_phy_task", _eth_arch_phy_task, netif, PHY_TASK_STACKSIZE, PHY_TASK_PRI);
+
+    /* initialize the hardware */
+    _eth_arch_low_level_init(netif);
+
+    return ERR_OK;
+}
 
 void eth_arch_enable_interrupts(void)
 {
@@ -511,25 +578,17 @@ static void stm32xx_eth_set_hwaddr(emac_interface_t *emac, uint8_t *addr)
 
 static bool stm32xx_eth_link_out(emac_interface_t *emac, emac_stack_mem_chain_t *chain)
 {
-    return _eth_arch_low_level_output(emac, chain);
+    err_t err = _eth_arch_low_level_output(&(emac->netif), (struct pbuf*)chain);
+
+    return (err == ERR_OK)? true: false;
 }
 
 
 static bool stm32xx_eth_power_up(emac_interface_t *emac)
 {
-    /* semaphore */
-    sys_sem_new(&rx_ready_sem, 0);
+    err_t err = eth_arch_enetif_init(&(emac->netif));
 
-    sys_mutex_new(&tx_lock_mutex);
-
-    /* initialize the hardware */
-    _eth_arch_low_level_init();
-
-    /* task */
-    sys_thread_new("_eth_arch_rx_task", _eth_arch_rx_task, emac, RECV_TASK_STACKSIZE, RECV_TASK_PRI);
-    sys_thread_new("_eth_arch_phy_task", _eth_arch_phy_task, emac, PHY_TASK_STACKSIZE, PHY_TASK_PRI);
-
-    return true;
+    return (err == ERR_OK)? true: false;
 }
 
 static void stm32xx_eth_power_down(emac_interface_t *emac)
