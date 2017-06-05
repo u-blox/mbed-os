@@ -128,34 +128,36 @@ static emac_lwip_l2b_entry_t* alloc_bridge_entry(struct netif *net, uint8_t *mac
         entry = malloc(sizeof(emac_lwip_l2b_entry_t));
         MBED_ASSERT(entry != 0);
 
-        memset(entry, 0, sizeof(emac_lwip_l2b_entry_t));
-
+        // Place first
+        entry->next = _bridge;
+        entry->previous = 0;
+        if(_bridge != 0) {
+            _bridge->previous = entry;
+        }
+        _bridge = entry;
         _bridge_count++;
     }
-    // Re-use last one in list
+    // Re-use oldest one in list
     else {
-        entry = _bridge;
+        MBED_ASSERT(_bridge != 0);
 
-        while(entry->next != 0) {
+        emac_lwip_l2b_entry_t *oldest_entry = _bridge;
+
+        entry = _bridge->next;
+        while(entry != 0) {
+            if(entry->ticks >= oldest_entry->ticks) {
+                oldest_entry = entry;
+            }
+
             entry = entry->next;
         }
 
-        //Take out of bridge list
-        if(entry->previous != 0) {
-            entry->previous->next = 0;
-        }
+        entry = oldest_entry;
     }
     MBED_ASSERT(entry != 0);
 
-    // Place first
-    entry->next = _bridge;
-    entry->previous = 0;
-    if(_bridge != 0) {
-        _bridge->previous = entry;
-    }
-    _bridge = entry;
-
-    // Initialise
+    // Initialize
+    entry->ticks = 0;
     entry->net = net;
     memcpy(entry->mac_address, mac_address, EMAC_LWIP_L2B_MAC_ADDR_SIZE);
 
@@ -205,7 +207,7 @@ static err_t output_from_local_to_netifs(emac_stack_mem_chain_t *buf)
             emac = (emac_interface_t*)(_netifs[i].net->state);
             MBED_ASSERT(emac != 0);
 
-            //TODO: Works if each IF copies data or is done with tx when link_out is returned
+            //TODO: Works if each interface copies data or is done with buf when link_out is returned
             memcpy(mac_src, _netifs[i].net->hwaddr, EMAC_LWIP_L2B_MAC_ADDR_SIZE);
 
             ok = emac->ops->link_out(emac, buf);
@@ -236,6 +238,7 @@ static bool is_addr_local(u8_t *mac_addr)
     return found;
 }
 
+/*
 static void move_bridge_entry_first(emac_lwip_l2b_entry_t *entry)
 {
     MBED_ASSERT(entry != 0);
@@ -258,6 +261,7 @@ static void move_bridge_entry_first(emac_lwip_l2b_entry_t *entry)
         _bridge = entry;
     }
 }
+*/
 
 static void touch_bridge_entry(struct netif *net, u8_t *mac_address)
 {
@@ -267,7 +271,7 @@ static void touch_bridge_entry(struct netif *net, u8_t *mac_address)
     emac_lwip_l2b_entry_t *entry = get_bridge_entry(mac_address);
 
     if(entry != 0) {
-        move_bridge_entry_first(entry);
+        //move_bridge_entry_first(entry);
 
         entry->net = net;
         entry->ticks = 0;
