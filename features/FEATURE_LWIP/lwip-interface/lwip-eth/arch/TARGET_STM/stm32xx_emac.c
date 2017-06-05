@@ -363,15 +363,18 @@ static void _eth_arch_rx_task(void *arg)
 	bool	frame_available;
 
     while (1) {
-        sys_arch_sem_wait(&rx_ready_sem, 1000);
+        sys_arch_sem_wait(&rx_ready_sem, 0);
 
         do {
             p = _eth_arch_low_level_input(netif, &frame_available);
             if (p != NULL) {
                  emac_link_input_cb(emac_link_input_cb_data, p);
             }
+            else if(frame_available) {
+                sys_msleep(1);
+            }
 
-        } while(frame_available && (p != 0));
+        } while(frame_available);
     }
 }
 
