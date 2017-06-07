@@ -1,6 +1,6 @@
 /**
 *---------------------------------------------------------------------------
- * Copyright (c) 2016, u-blox MalmÃ¶, All Rights Reserved
+ * Copyright (c) 2016, u-blox Malmö, All Rights Reserved
  * SPDX-License-Identifier: LicenseRef-PBL
  *
  * This file and the related binary are licensed under the
@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Component   : Bluetooth Serial
+ * Component   : Bluetooth PAN Data Manager
  * File        : cb_bt_pan.h
  *
  * Description : Data management for PAN profile
