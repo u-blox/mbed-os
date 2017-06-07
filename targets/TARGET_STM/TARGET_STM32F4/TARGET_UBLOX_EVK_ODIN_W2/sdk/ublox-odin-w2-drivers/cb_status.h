@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------
- * Copyright (c) 2016, u-blox MalmÃ¶, All Rights Reserved
+ * Copyright (c) 2016, u-blox Malmö, All Rights Reserved
  * SPDX-License-Identifier: LicenseRef-PBL
  *
  * This file and the related binary are licensed under the
@@ -26,7 +26,9 @@
  *=========================================================================*/
 
 #define OK(status) (status == cbSTATUS_OK)
- 
+#define BUSY(status) (status == cbSTATUS_BUSY)
+#define ERR(status) (status == cbSTATUS_ERROR)
+
 /*===========================================================================
  * TYPES
  *=========================================================================*/
@@ -36,6 +38,7 @@
     cbSTATUS_OK,
     cbSTATUS_ERROR,
     cbSTATUS_BUSY,
+    cbSTATUS_RECEIVE_DATA_MODE,
     cbSTATUS_TIMEOUT
  
  } cbRTSL_Status;
