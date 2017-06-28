@@ -728,9 +728,7 @@ bool PPPCellularInterface::power_up()
     bool success = false;
 
     int retry_count = 0;
-    onboard_modem_init();
     while (true) {
-        onboard_modem_power_up();
         /* Modem tends to spit out noise during power up - don't confuse the parser */
         _at->flush();
         /* It is mandatory to avoid sending data to the serial port during the first 200 ms
