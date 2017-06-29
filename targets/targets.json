@@ -1364,11 +1364,13 @@
                 "macro_name": "MODEM_ON_BOARD_UART" 
             }
         },
-        "macros_add": ["RTC_LSI=1", "HSE_VALUE=12000000", "GNSSBAUD=9600"],
-        "device_has_add": ["ANALOGOUT", "TRNG"],
+        "macros": ["TRANSACTION_QUEUE_SIZE_SPI=2", "RTC_LSI=1", "HSE_VALUE=12000000", "GNSSBAUD=9600"],
+        "inherits": ["Target"],
+        "device_has": ["ANALOGIN", "ANALOGOUT", "I2C", "I2CSLAVE", "INTERRUPTIN", "PORTIN", "PORTINOUT", "PORTOUT", "PWMOUT", "SERIAL", "SERIAL_FC", "SLEEP", "RTC", "SPI", "SPISLAVE", "STDIO_MESSAGES", "TRNG", "FLASH"],
         "features": ["LWIP"],
         "public": false,
-        "device_name": "STM32F437VG"
+        "device_name": "STM32F437VG",
+        "bootloader_supported": true
     },
     "UBLOX_C030_U201": {
         "inherits": ["UBLOX_C030"],
