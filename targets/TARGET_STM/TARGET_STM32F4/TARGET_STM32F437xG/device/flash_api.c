@@ -131,8 +131,9 @@ uint32_t flash_get_sector_size(const flash_t *obj, uint32_t address)
 
 uint32_t flash_get_page_size(const flash_t *obj)
 {
-    // not applicable for STM32F4
-    return (0x4000); // minimum sector size
+    // Note: still under discussion with ST,
+    // for now set to 0x400 to match FW update boundary
+    return (0x400);
 }
 uint32_t flash_get_start_address(const flash_t *obj)
 {
