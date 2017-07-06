@@ -184,9 +184,12 @@ ssize_t UARTSerial::read(void* buffer, size_t length)
     }
 
     core_util_critical_section_enter();
-    if (!_rx_irq_enabled && !_rxbuf.full()) {
-        SerialBase::attach(callback(this, &UARTSerial::rx_irq), RxIrq);
-        _rx_irq_enabled = true;
+    if (!_rx_irq_enabled) {
+        UARTSerial::rx_irq();               // only read from hardware in one place
+        if (!rx_buf.full()) {
+            SerialBase::attach(callback(this, &UARTSerial::rx_irq), RxIrq);
+            _rx_irq_enabled = true;
+        }
     }
     core_util_critical_section_exit();
 
