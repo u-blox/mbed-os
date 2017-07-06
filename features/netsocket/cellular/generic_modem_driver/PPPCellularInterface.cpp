@@ -717,6 +717,7 @@ void PPPCellularInterface::power_down()
  *
  * Enables the GPIO lines to the modem and then wriggles the power line in short pulses.
  */
+#include "onboard_modem_api.h"
 bool PPPCellularInterface::power_up()
 {
     /* Initialize GPIO lines */
@@ -728,7 +729,6 @@ bool PPPCellularInterface::power_up()
 
     int retry_count = 0;
     while (true) {
-        modem_power_up();
         /* Modem tends to spit out noise during power up - don't confuse the parser */
         _at->flush();
         /* It is mandatory to avoid sending data to the serial port during the first 200 ms
@@ -748,15 +748,27 @@ bool PPPCellularInterface::power_up()
 
     _at->set_timeout(8000);
 
-    /*For more details regarding DCD and DTR circuitry, please refer to Modem AT manual */
-    success = _at->send("AT"
-                        "E0;" //turn off modem echoing
-                        "+CMEE=2;"//turn on verbose responses
-                        "&K0"//turn off RTC/CTS handshaking
-                        "+IPR=115200;"//setup baud rate
-                        "&C1;"//set DCD circuit(109), changes in accordance with the carrier detect status
-                        "&D0")//set DTR circuit, we ignore the state change of DTR
-              && _at->recv("OK");
+    /* Set the final baud rate */
+    if (_at->send("AT+IPR=%d", 460800) && _at->recv("OK")) {
+        /* Need to wait for things to be sorted out on the modem side */
+        wait_ms(100);
+        ((UARTSerial *)_fh)->set_baud(460800);
+    }
+
+    /* Turn off modem echo and turn on extended error reporting */
+    success = _at->send("ATE0;+CMEE=2") && _at->recv("OK") &&
+        /* The following commands configure hardware in the modem and are best sent as separate AT commands */
+        /* For more details regarding DCD and DTR circuitry, please refer to Modem AT manual */
+        /* Turn off RTC/CTS handshaking */
+              _at->send("AT&K0") && _at->recv("OK") &&
+        /* Set DCD circuit(109), changes in accordance with the carrier detect status */
+              _at->send("AT&C1") && _at->recv("OK") &&
+        /* Set DTR circuit, we ignore the state change of DTR */
+              _at->send("AT&D0") && _at->recv("OK");
+
+#if DEVICE_SERIAL_FC
+    ((UARTSerial *)_fh)->set_flow_control(SerialBase::RTSCTS, MDMRTS, MDMCTS);
+#endif
 
     if (!success) {
         goto failure;

@@ -64,11 +64,6 @@ struct trng_s {
     RNG_HandleTypeDef handle;
 };
 
-struct dac_s {
-    DACName dac;
-    uint8_t channel;
-};
-
 #if DEVICE_FLASH
 struct flash_s {
     uint32_t dummy;

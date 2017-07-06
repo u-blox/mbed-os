@@ -462,6 +462,10 @@ PACK_STRUCT_END
  * @param s received data
  * @param l length of received data
  */
+
+#include "gpio_api.h"
+#include "PinNames.h"
+
 void
 pppos_input(ppp_pcb *ppp, u8_t *s, int l)
 {
@@ -510,6 +514,8 @@ pppos_input(ppp_pcb *ppp, u8_t *s, int l)
           pppos_input_drop(pppos);
         /* If the fcs is invalid, drop the packet. */
         } else if (pppos->in_fcs != PPP_GOODFCS) {
+          gpio_t gpio;
+          gpio_init_out_ex(&gpio, D6, 0);
           PPPDEBUG(LOG_INFO,
                    ("pppos_input[%d]: Dropping bad fcs 0x%"X16_F" proto=0x%"X16_F"\n",
                     ppp->netif->num, pppos->in_fcs, pppos->in_protocol));
