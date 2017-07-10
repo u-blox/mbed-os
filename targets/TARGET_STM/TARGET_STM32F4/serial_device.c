@@ -276,13 +276,13 @@ static void uart_irq(int id)
         if (__HAL_UART_GET_FLAG(huart, UART_FLAG_TC) != RESET) {
             if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_TC) != RESET) {
                 irq_handler(serial_irq_ids[id], TxIrq);
-                __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
+//                __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
             }
         }
         if (__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE) != RESET) {
             if (__HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE) != RESET) {
                 irq_handler(serial_irq_ids[id], RxIrq);
-                __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+//                __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
             }
         }
         if (__HAL_UART_GET_FLAG(huart, UART_FLAG_ORE) != RESET) {
