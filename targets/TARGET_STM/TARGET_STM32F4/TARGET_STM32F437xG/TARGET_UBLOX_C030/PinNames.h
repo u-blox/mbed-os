@@ -68,6 +68,11 @@ typedef enum {
     
     // Not connected
     NC = -1,
+    
+    // ADC internal channels
+    ADC_TEMP = 0xF0,
+    ADC_VREF = 0xF1,
+    ADC_VBAT = 0xF2,
 
     // Power
     PWR3V3 = PE_0,       // 3.3V rail for the Arduino interface,
