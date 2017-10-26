@@ -54,9 +54,15 @@ typedef enum {
     UART_8 = (int)UART8_BASE
 } UARTName;
 
+#ifdef TARGET_UBLOX_C030_R3121
+#define STDIO_UART_TX  PD_5
+#define STDIO_UART_RX  PD_6
+#define STDIO_UART     UART_2
+#else
 #define STDIO_UART_TX  PA_9
 #define STDIO_UART_RX  PA_10
 #define STDIO_UART     UART_1
+#endif
 
 typedef enum {
     SPI_1 = (int)SPI1_BASE,
