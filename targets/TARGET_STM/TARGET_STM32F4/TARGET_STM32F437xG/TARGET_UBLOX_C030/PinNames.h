@@ -80,7 +80,7 @@ typedef enum {
     GNSSRXD = PC_7,
     
     // Cellular modem (a DCE)
-	MDMPWRON  = PE_14,   // Power (active high)
+    MDMPWRON  = PE_14,   // Power (active high)
     MDMRST    = PB_5,    // Reset (active low)
 #ifdef TARGET_UBLOX_C030_R3121
     MDMTXD    = PA_9,    // Transmit Data
