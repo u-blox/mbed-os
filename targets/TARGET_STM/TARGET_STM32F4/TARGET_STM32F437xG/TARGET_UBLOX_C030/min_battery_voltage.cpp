@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2017 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 /** Defining HAL_MspInit strong function
  * in user defined file as described in documentation
- * */
+ */
 
 void HAL_MspInit(void)
 {
@@ -38,12 +38,11 @@ void set_minimum_battery_voltage()
         data_write[0] = 0x0;
         data_write[1] = data_read;
         if (i2c_object.write_to_i2c(BQ24295_I2C_ADDRESS,&data_write[0] , 2)){
-			    //Do nothing - printf feasible?
-				//Battery Voltage is set to 3880mV
+            //Battery Voltage is set to 3880mV
             }
         }
     else{
-    	//Do nothing - printf feasible?
-        //printf("Minimum battery voltage level could not be set properly \r\n");
+        // Minimum battery voltage could not be set.  This is not a critical error, no need to stop execution
+        // It simply means that longer cabling or USB ports with lower output voltages may cause problems.
     }
 }

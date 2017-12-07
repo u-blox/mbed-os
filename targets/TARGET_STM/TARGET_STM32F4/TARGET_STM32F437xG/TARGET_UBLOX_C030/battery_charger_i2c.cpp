@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2017 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ BatteryChargerI2c::BatteryChargerI2c(PinName sda, PinName scl):_i2c(), _hz(10000
 bool BatteryChargerI2c::read_from_i2c(int i2c_address, char* data_read, int length)
 {
     int bytes_read = i2c_read(&_i2c, i2c_address, data_read, length, 1);
-    return ((length == bytes_read) ? (true) : (false));
+    return (length == bytes_read);
 }
 
 bool BatteryChargerI2c::write_to_i2c(int i2c_address, const char* data_write, int length)
 {
     int bytes_written = i2c_write(&_i2c, i2c_address, data_write, length, 1);
-    return ((length == bytes_written) ? (true) : (false));
+    return (length == bytes_written);
 }

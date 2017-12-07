@@ -1,5 +1,5 @@
-#ifndef I2C_BATT_CHARGER_H
-#define I2C_BATT_CHARGER_H
+#ifndef BATTERY_CHARGER_I2C
+#define BATTERY_CHARGER_I2C
 
 #include "hal/i2c_api.h"
 
@@ -24,4 +24,4 @@ private:
 }
 #endif
 
-#endif //I2C_BATT_CHARGER_H
+#endif //BATTERY_CHARGER_I2C

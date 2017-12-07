@@ -9,9 +9,9 @@ extern"C"{
 #define MIN_BATTERY_VOLTAGE_MASK (0x87)
 
 /** Initializes an instance of class BatteryChargerI2c which is using the STM HAL I2C APIs
-* to interface with the battery charger BQ24295. This sets the Input Control Source Register
-* of the Battery Charger chip to its minimum voltage level
-*/
+ *  This allows longer USB cables or USB ports with lower output voltages to power the board correctly.
+ */
+
 void set_minimum_battery_voltage(void);
 
 #ifdef __cplusplus
