@@ -82,7 +82,7 @@ typedef enum {
     // Cellular modem (a DCE)
     MDMPWRON  = PE_14,   // Power (active high)
     MDMRST    = PB_5,    // Reset (active low)
-#ifdef TARGET_UBLOX_C030_R3121
+#if defined(TARGET_UBLOX_C030_R3121) || defined(TARGET_UBLOX_C030_R410M)
     MDMTXD    = PA_9,    // Transmit Data
     MDMRXD    = PA_10,    // Receive Data
     MDMCTS    = PA_11,    // Clear to Send
@@ -153,7 +153,7 @@ typedef enum {
     SPI_NSS     = D10,
 
     // ST-Link
-#ifdef TARGET_UBLOX_C030_R3121
+#if defined(TARGET_UBLOX_C030_R3121) || defined(TARGET_UBLOX_C030_R410M)
     USBRX   = PD_6,
     USBTX   = PD_5,
 #else

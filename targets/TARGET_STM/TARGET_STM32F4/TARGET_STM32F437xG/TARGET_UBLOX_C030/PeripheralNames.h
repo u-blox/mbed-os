@@ -54,7 +54,7 @@ typedef enum {
     UART_8 = (int)UART8_BASE
 } UARTName;
 
-#ifdef TARGET_UBLOX_C030_R3121
+#if defined(TARGET_UBLOX_C030_R3121) || defined(TARGET_UBLOX_C030_R410M)
 #define STDIO_UART_TX  PD_5
 #define STDIO_UART_RX  PD_6
 #define STDIO_UART     UART_2
