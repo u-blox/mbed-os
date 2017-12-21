@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <new>
+#include <stdint.h>
 
 #include "lwip/opt.h"
 #include "lwip/api.h"
@@ -36,6 +37,10 @@
 #include "ppp_lwip.h"
 
 #include "LWIPStack.h"
+
+#if !defined(UINT16_MAX)
+#define UINT16_MAX ((uint16_t)-1)
+#endif
 
 static void add_dns_addr_to_dns_list_index(const u8_t addr_type, const u8_t index)
 {
@@ -269,6 +274,7 @@ nsapi_error_t LWIP::add_ethernet_interface(EMAC &emac, bool default_if, OnboardN
         return NSAPI_ERROR_NO_MEMORY;
     }
     interface->emac = &emac;
+    interface->memory_manager = &memory_manager;
     interface->dhcp = true;
     interface->ppp = false;
 
@@ -401,7 +407,6 @@ nsapi_error_t LWIP::Interface::bringup(bool dhcp, const char *ip, const char *ne
     }
 #endif
 
-    netif_set_up(&netif);
     if (ppp) {
        err_t err = ppp_lwip_connect(hw);
        if (err) {

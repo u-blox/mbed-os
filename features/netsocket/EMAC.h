@@ -19,7 +19,7 @@
 
 #include <stdbool.h>
 #include "Callback.h"
-#include "emac_stack_mem.h"
+#include "EMACMemoryManager.h"
 
 /**
  * This interface should be used to abstract low level access to networking hardware
@@ -41,8 +41,8 @@ public:
      *
      * @param buf  Received data
      */
-    //typedef void (*emac_link_input_fn)(void *data, emac_stack_mem_chain_t *buf);
-    typedef mbed::Callback<void (emac_stack_mem_chain_t *buf)> emac_link_input_cb_t;
+    //typedef void (*emac_link_input_fn)(void *data, emac_mem_buf_t *buf);
+    typedef mbed::Callback<void (emac_mem_buf_t *buf)> emac_link_input_cb_t;
 
     /**
      * Callback to be register with Emac interface and to be called for link status changes
@@ -109,7 +109,7 @@ public:
      * @param buf  Packet to be send
      * @return     True if the packet was send successfully, False otherwise
      */
-    virtual bool link_out(emac_stack_mem_chain_t *buf) = 0;
+    virtual bool link_out(emac_mem_buf_t *buf) = 0;
 
     /**
      * Initializes the HW
@@ -144,6 +144,11 @@ public:
      */
     virtual void add_multicast_group(uint8_t *address) = 0;
 
+    /** Sets memory manager that is used to handle memory buffers
+     *
+     * @param mem_mngr Pointer to memory manager
+     */
+    virtual void set_memory_manager(EMACMemoryManager &mem_mngr) = 0;
 };
 
 

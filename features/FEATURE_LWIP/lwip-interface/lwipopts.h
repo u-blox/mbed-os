@@ -19,10 +19,6 @@
 #ifndef LWIPOPTS_H
 #define LWIPOPTS_H
 
-#if MBED_CONF_LWIP_ETHERNET_ENABLED
-#include "lwipopts_conf.h"
-#endif
-
 // Workaround for Linux timeval
 #if defined (TOOLCHAIN_GCC)
 #define LWIP_TIMEVAL_PRIVATE 0
@@ -149,7 +145,7 @@
 
 #ifdef MBED_CONF_LWIP_PBUF_POOL_BUFSIZE
 #undef PBUF_POOL_BUFSIZE
-#define PBUF_POOL_BUFSIZE           MBED_CONF_LWIP_PBUF_POOL_BUFSIZE
+#define PBUF_POOL_BUFSIZE           LWIP_MEM_ALIGN_SIZE(MBED_CONF_LWIP_PBUF_POOL_BUFSIZE)
 #endif
 
 #ifdef MBED_CONF_LWIP_MEM_SIZE
