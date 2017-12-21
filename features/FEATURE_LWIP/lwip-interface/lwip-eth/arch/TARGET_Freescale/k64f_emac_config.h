@@ -42,16 +42,7 @@
 #define K64_ETH_MTU_SIZE              1500
 #define K64_ETH_IF_NAME               "en"
 
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-int phy_link_status(void);
-
-#if defined(__cplusplus)
-}
-#endif
+#define THREAD_STACKSIZE              512
 
 #endif // #define K64F_EMAC_CONFIG_H__
 
