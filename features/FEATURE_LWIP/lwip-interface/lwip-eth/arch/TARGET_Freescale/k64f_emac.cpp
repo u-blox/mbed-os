@@ -409,13 +409,19 @@ bool K64F_EMAC::link_out(emac_mem_buf_t *buf)
 {
   emac_mem_buf_t *temp_pbuf;
 
-  temp_pbuf = memory_manager->alloc_heap(memory_manager->get_total_len(buf), ENET_BUFF_ALIGNMENT);
-  if (NULL == temp_pbuf)
-    return false;
+  // If buffer is chained or not aligned then make a contiguous aligned copy of it
+  if (memory_manager->get_next(buf) ||
+      reinterpret_cast<uint32_t>(memory_manager->get_ptr(buf)) % ENET_BUFF_ALIGNMENT) {
+      temp_pbuf = memory_manager->alloc_heap(memory_manager->get_total_len(buf), ENET_BUFF_ALIGNMENT);
+      if (NULL == temp_pbuf)
+        return false;
 
-  // Copy to new buffer and free original
-  memory_manager->copy(temp_pbuf, buf);
-  memory_manager->free(buf);
+      // Copy to new buffer and free original
+      memory_manager->copy(temp_pbuf, buf);
+      memory_manager->free(buf);
+  } else {
+      temp_pbuf = buf;
+  }
 
   /* Check if a descriptor is available for the transfer. */
   if (xTXDCountSem.wait(0) == 0)
@@ -566,7 +572,8 @@ void K64F_EMAC::power_down()
 void K64F_EMAC::set_memory_manager(EMACMemoryManager &mem_mngr)
 {
     memory_manager = &mem_mngr;
-}
+    memory_manager->set_align_preference(ENET_BUFF_ALIGNMENT);
+};
 
 
 K64F_EMAC &K64F_EMAC::get_instance() {

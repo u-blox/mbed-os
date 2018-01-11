@@ -91,7 +91,7 @@ const ip_addr_t *LWIP::get_ipv6_addr(const struct netif *netif)
 }
 #endif
 
-static bool LWIP::is_local_addr(const ip_addr_t *ip_addr)
+bool LWIP::is_local_addr(const ip_addr_t *ip_addr)
 {
     struct netif *netif;
 

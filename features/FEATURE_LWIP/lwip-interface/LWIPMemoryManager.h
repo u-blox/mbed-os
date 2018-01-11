@@ -56,6 +56,17 @@ public:
     uint32_t get_pool_alloc_unit(uint32_t align) const;
 
     /**
+     * Sets buffer alignment preference
+     *
+     * Sets preferred memory buffer alignment of the emac device. IP stack may or may not
+     * align link out memory buffer chains using the alignment.
+     *
+     * @param align    Memory alignment requirement in bytes
+     * @return         Contiguous memory size
+     */
+    void set_align_preference(uint32_t align);
+
+    /**
      * Free memory buffer chain
      *
      * If memory buffer is chained must point to the start of the chain. Frees all buffers
@@ -85,6 +96,31 @@ public:
      * @param from_buf  Memory buffer chain to copy from
      */
     void copy(emac_mem_buf_t *to_buf, const emac_mem_buf_t *from_buf);
+
+    /**
+     * Copy to a memory buffer chain
+     *
+     * Copies data to a buffer chain. Copy operation does not adjust the lengths
+     * of the copied-to memory buffer chain, so chain total length must match the
+     * copied length.
+     *
+     * @param to_buf    Memory buffer chain to copy to
+     * @param ptr       Pointer to data
+     * @param len       Data length
+     */
+    void copy_to_buf(emac_mem_buf_t *to_buf, const void *ptr, uint32_t len);
+
+    /**
+     * Copy from a memory buffer chain
+     *
+     * Copies data from a memory buffer chain.
+     *
+     * @param len       Data length
+     * @param ptr       Pointer to data
+     * @param from_buf  Memory buffer chain to copy from
+     * @return          Length of the data that was copied
+     */
+    uint32_t copy_from_buf(void *ptr, uint32_t len, const emac_mem_buf_t *from_buf) const;
 
     /**
      * Concatenate two memory buffer chains
