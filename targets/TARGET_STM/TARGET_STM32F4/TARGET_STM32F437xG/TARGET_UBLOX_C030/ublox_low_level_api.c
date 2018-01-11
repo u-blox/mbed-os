@@ -27,9 +27,9 @@ void ublox_board_init(void) {
     // start with modem disabled 
     gpio_init_out_ex(&gpio, MDMRST,    0);
 #if defined(TARGET_UBLOX_C030_R410M)
-	gpio_init_inout(&gpio, MDMPWRON, PIN_OUTPUT, OpenDrain, 1);
+    gpio_init_inout(&gpio, MDMPWRON, PIN_OUTPUT, OpenDrain, 1);
 #else
-	gpio_init_out_ex(&gpio, MDMPWRON,  0);
+    gpio_init_out_ex(&gpio, MDMPWRON,  0);
 #endif
     gpio_init_out_ex(&gpio, MDMRTS,    0);
     gpio_init_in_ex(&gpio,  MDMCURRENTSENSE, PullNone);
