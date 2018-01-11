@@ -29,9 +29,9 @@ static void press_power_button(int time_us)
     gpio_t gpio;
 
 #if defined(TARGET_UBLOX_C030_R410M)
-	gpio_init_inout(&gpio, MDMPWRON, PIN_OUTPUT, OpenDrain, 0);
+    gpio_init_inout(&gpio, MDMPWRON, PIN_OUTPUT, OpenDrain, 0);
 #else
-	gpio_init_out_ex(&gpio, MDMPWRON, 0);
+    gpio_init_out_ex(&gpio, MDMPWRON, 0);
 #endif
 
     wait_us(time_us);
@@ -58,10 +58,10 @@ void onboard_modem_power_up()
 {
 #if defined(TARGET_UBLOX_C030_R410M)
 	/* keep the power line low for 1 seconds */
-	press_power_button(1000000);
+    press_power_button(1000000);
 #else
 	/* keep the power line low for 50 microseconds */
-	press_power_button(50);
+    press_power_button(50);
 #endif
 
     /* give modem a little time to respond */
@@ -75,7 +75,7 @@ void onboard_modem_power_down()
     press_power_button(1500000);
 #else
 	/* keep the power line low for 1 seconds */
-	press_power_button(1000000);
+    press_power_button(1000000);
 #endif
 }
 

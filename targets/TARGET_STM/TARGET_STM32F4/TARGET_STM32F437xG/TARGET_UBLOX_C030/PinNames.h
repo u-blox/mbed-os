@@ -157,7 +157,7 @@ typedef enum {
     USBRX   = PD_6,
     USBTX   = PD_5,
 #else
-	USBRX   = PA_10,
+    USBRX   = PA_10,
     USBTX   = PA_9,
 #endif
     SWDIO   = PA_13, 
