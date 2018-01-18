@@ -242,7 +242,7 @@ error:
  * @return a memory buffer filled with the received packet (including MAC header)
  *         NULL on memory error
  */
-emac_mem_buf_t *STM32_EMAC::low_level_input()
+emac_mem_buf_t *STM32_EMAC::low_level_input(bool *frame_available)
 {
     uint16_t len = 0;
     uint8_t *buffer;
@@ -251,10 +251,14 @@ emac_mem_buf_t *STM32_EMAC::low_level_input()
     emac_mem_buf_t *buf = 0;
     uint32_t payloadoffset = 0;
 
+    *frame_available = false;
+
     /* get received frame */
     if (HAL_ETH_GetReceivedFrame(&EthHandle) != HAL_OK) {
         return NULL;
     }
+
+    *frame_available = true;
 
     /* Obtain the size of the packet and put it into the "len" variable. */
     len = EthHandle.RxFrameInfos.length;
@@ -311,15 +315,19 @@ emac_mem_buf_t *STM32_EMAC::low_level_input()
  */
 void STM32_EMAC::packet_rx()
 {
-  emac_mem_buf_t *p;
+    emac_mem_buf_t *p;
+    bool frame_available;
 
-  /* move received packet into a new buf */
-  p = low_level_input();
-  if (p == NULL) {
-      return;
-  }
-
-  emac_link_input_cb(p);
+    /* Move all received packet(s) into new buf(s) */
+    do {
+        p = low_level_input(&frame_available);
+        if (p != NULL) {
+            emac_link_input_cb(p);
+        }
+        else if(frame_available) {
+            osDelay(1);
+        }
+    } while(frame_available);
 }
 
 /** \brief  Worker thread.
