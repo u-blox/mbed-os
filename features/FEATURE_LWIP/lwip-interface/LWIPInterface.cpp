@@ -449,7 +449,6 @@ nsapi_error_t LWIP::Interface::bringup(bool dhcp, const char *ip, const char *ne
             }
             return NSAPI_ERROR_DHCP_FAILURE;
         }
-        connected = true;
     }
 
 #if PREF_ADDR_TIMEOUT
@@ -472,6 +471,8 @@ nsapi_error_t LWIP::Interface::bringup(bool dhcp, const char *ip, const char *ne
 #endif
 
     add_dns_addr(&netif);
+
+    connected = true;
 
     return 0;
 }
