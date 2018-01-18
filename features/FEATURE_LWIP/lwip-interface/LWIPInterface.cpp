@@ -430,7 +430,7 @@ nsapi_error_t LWIP::Interface::bringup(bool dhcp, const char *ip, const char *ne
 #if LWIP_DHCP
     if (stack != IPV6_STACK) {
         // Connect to the network
-        dhcp = dhcp;
+        this->dhcp = dhcp;
 
         if (dhcp) {
             err_t err = dhcp_start(&netif);
