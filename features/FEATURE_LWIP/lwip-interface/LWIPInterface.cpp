@@ -233,7 +233,7 @@ char *LWIP::Interface::get_gateway(char *buf, nsapi_size_t buflen)
 
 LWIP::Interface::Interface() :
         hw(NULL), has_addr_state(0),
-        connected(false), dhcp(false), ppp(false)
+        connected(false), dhcp(false), ppp(false), _broadcast_to_self(false)
 {
     memset(&netif, 0, sizeof netif);
 
@@ -542,3 +542,14 @@ nsapi_error_t LWIP::Interface::bringdown()
     connected = false;
     return 0;
 }
+
+void LWIP::Interface::set_broadcast_to_self(bool enabled)
+{
+    _broadcast_to_self = enabled;
+}
+
+bool LWIP::Interface::get_broadcast_to_self(void)
+{
+    return _broadcast_to_self;
+}
+
