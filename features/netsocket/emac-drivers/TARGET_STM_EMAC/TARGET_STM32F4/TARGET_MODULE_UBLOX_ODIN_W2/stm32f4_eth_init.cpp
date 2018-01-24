@@ -41,6 +41,10 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
     GPIO_InitTypeDef GPIO_InitStructure;
     if (heth->Instance == ETH) {
 
+#if MBED_EMAC_LWIP_L2_BRIDGE
+        heth->Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
+#endif
+
         /* Enable GPIOs clocks */
         __HAL_RCC_GPIOA_CLK_ENABLE();
         __HAL_RCC_GPIOB_CLK_ENABLE();
