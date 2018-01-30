@@ -1,4 +1,4 @@
-#if MBED_CONF_LWIP_ETHERNET_ENABLED
+//#if MBED_CONF_LWIP_ETHERNET_ENABLED
 
 #include <stdlib.h> 
 
@@ -269,7 +269,7 @@ emac_mem_buf_t *STM32_EMAC::low_level_input(bool *frame_available)
 
     if (len > 0) {
         /* Allocate a contiguous memory buffer, if not available drop incoming frame */
-        buf = memory_manager->alloc_heap(len, 0);
+        buf = memory_manager->alloc_pool(len, 0);
     }
 
     if (buf) {
@@ -531,4 +531,4 @@ MBED_WEAK EMAC &EMAC::get_default_instance() {
     return STM32_EMAC::get_instance();
 }
 
-#endif
+//#endif
