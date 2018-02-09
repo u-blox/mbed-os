@@ -32,6 +32,7 @@
 #include "mbed_assert.h"
 #include "i2c_api.h"
 #include "platform/mbed_wait_api.h"
+#include "hal/us_ticker_api.h"
 
 #if DEVICE_I2C
 
@@ -724,6 +725,7 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop) {
     I2C_HandleTypeDef *handle = &(obj_s->handle);
     int count = I2C_ERROR_BUS_BUSY, ret = 0;
     uint32_t timeout = 0;
+    uint32_t start = 0;
 
     // Trick to remove compiler warning "left and right operands are identical" in some cases
     uint32_t op1 = I2C_FIRST_AND_LAST_FRAME;
@@ -754,7 +756,8 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop) {
         timeout = BYTE_TIMEOUT_US * (length + 1);
         /*  transfer started : wait completion or timeout */
         while(!(obj_s->event & I2C_EVENT_ALL) && (--timeout != 0)) {
-            wait_us(1);
+            start = us_ticker_read();
+            while ((us_ticker_read() - start) < 1000000);
         }
 
         i2c_ev_err_disable(obj);
@@ -778,6 +781,7 @@ int i2c_write(i2c_t *obj, int address, const char *data, int length, int stop) {
     I2C_HandleTypeDef *handle = &(obj_s->handle);
     int count = I2C_ERROR_BUS_BUSY, ret = 0;
     uint32_t timeout = 0;
+    uint32_t start = 0;
 
     // Trick to remove compiler warning "left and right operands are identical" in some cases
     uint32_t op1 = I2C_FIRST_AND_LAST_FRAME;
@@ -805,7 +809,8 @@ int i2c_write(i2c_t *obj, int address, const char *data, int length, int stop) {
         timeout = BYTE_TIMEOUT_US * (length + 1);
         /*  transfer started : wait completion or timeout */
         while(!(obj_s->event & I2C_EVENT_ALL) && (--timeout != 0)) {
-            wait_us(1);
+            start = us_ticker_read();
+            while ((us_ticker_read() - start) < 1000000);
         }
 
         i2c_ev_err_disable(obj);
