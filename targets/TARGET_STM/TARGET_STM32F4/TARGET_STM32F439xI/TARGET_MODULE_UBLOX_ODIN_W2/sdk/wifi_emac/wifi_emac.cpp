@@ -207,6 +207,10 @@ bool WIFI_EMAC::link_out(emac_mem_buf_t *buf)
             mem->free(new_buf);
         }
     }
+    // Whether the packet is successfully sent or not , the buffer needs to be free.
+    // Currently there is no implementation of failure case, link out is always returning true
+    mem->free(buf);
+
     return true;
 }
 
