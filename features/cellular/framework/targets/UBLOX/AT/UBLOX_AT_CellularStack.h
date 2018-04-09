@@ -19,9 +19,9 @@
 
 #include "AT_CellularStack.h"
 #include "CellularUtil.h"
-#include "mbed_wait_api.h"
-#include "drivers/Timer.h"
 
+//#define BC95_SOCKET_MAX 7
+//#define BC95_MAX_PACKET_SIZE 512
 
 namespace mbed {
 
@@ -31,65 +31,52 @@ public:
     UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, nsapi_ip_stack_t stack_type);
     virtual ~UBLOX_AT_CellularStack();
 
-    virtual const char *get_ip_address();
-
-    virtual nsapi_error_t gethostbyname(const char *host,
-            SocketAddress *address, nsapi_version_t version = NSAPI_UNSPEC);
-
-protected:
-    virtual nsapi_error_t socket_listen(nsapi_socket_t handle, int backlog);
-
-    virtual nsapi_error_t socket_accept(nsapi_socket_t server,
-                                        nsapi_socket_t *handle, SocketAddress *address=0);
 
 protected: // AT_CellularStack
 
-    /** Socket "unused" value.
+    /** Lock a mutex when accessing the modem.
      */
-    #define SOCKET_UNUSED -1
+    void lock(void)     { _mtx.lock(); }
 
-    /** The profile to use (on board the modem).
+    /** Helper to make sure that lock unlock pair is always balanced
      */
-    #define PROFILE "0"
-	
-    /** Socket timeout value in milliseconds.
-     * Note: the sockets layer above will retry the
-     * call to the functions here when they return NSAPI_ERROR_WOULD_BLOCK
-     * and the user has set a larger timeout or full blocking.
-     */
-    #define SOCKET_TIMEOUT 5000
-	
-    /** Maximum allowed sockets.
-     */
-    #define UBLOX_MAX_SOCKET 7
-	
-    /** The maximum number of bytes in a packet that can be write/read from
-     * the AT interface in one go.
-     */
-    #define UBLOX_MAX_PACKET_SIZE 1024
+    #define LOCK()         { lock()
 
-    virtual int get_max_socket_count();
+    /** Unlock the modem when done accessing it.
+     */
+    void unlock(void)   { _mtx.unlock(); }
 
-    virtual int get_max_packet_size();
+    /** Helper to make sure that lock unlock pair is always balanced
+     */
+    #define UNLOCK()       } unlock()
 
-    virtual bool is_protocol_supported(nsapi_protocol_t protocol);
+    virtual const char *get_ip_address();
 
     virtual nsapi_error_t socket_open(nsapi_socket_t *handle, nsapi_protocol_t proto);
-	
-    virtual nsapi_error_t create_socket_impl(CellularSocket *socket);
-	
+
+    virtual nsapi_error_t socket_close(nsapi_socket_t handle);
+
+    virtual nsapi_error_t socket_bind(nsapi_socket_t handle, const SocketAddress &address);
+
+    // Unsupported TCP server function.
+    virtual nsapi_error_t socket_listen(nsapi_socket_t handle, int backlog);
+
     virtual nsapi_error_t socket_connect(nsapi_socket_t handle, const SocketAddress &address);
 
-    virtual nsapi_size_or_error_t socket_sendto_impl(CellularSocket *socket, const SocketAddress &address,
-            const void *data, nsapi_size_t size);
+    // Unsupported TCP server function.
+    virtual nsapi_error_t socket_accept(nsapi_socket_t server, nsapi_socket_t *handle, SocketAddress *address=0);
 
-    virtual nsapi_size_or_error_t socket_recvfrom_impl(CellularSocket *socket, SocketAddress *address,
-            void *buffer, nsapi_size_t size);
+    virtual nsapi_size_or_error_t socket_send(nsapi_socket_t handle, const void *data, nsapi_size_t size);
 
-    virtual nsapi_size_or_error_t socket_sendto(nsapi_socket_t handle, const SocketAddress &address,
-            const void *data, nsapi_size_t size);
-			
-    virtual nsapi_error_t socket_close_impl(int sock_id);
+    virtual nsapi_size_or_error_t socket_recv(nsapi_socket_t handle, void *data, nsapi_size_t size);
+
+    virtual nsapi_size_or_error_t socket_sendto(nsapi_socket_t handle, const SocketAddress &address, const void *data, nsapi_size_t size);
+
+    virtual nsapi_size_or_error_t socket_recvfrom(nsapi_socket_t handle, SocketAddress *address, void *buffer, nsapi_size_t size);
+
+    virtual void socket_attach(nsapi_socket_t handle, void (*callback)(void *), void *data);
+
+    int read_at_to_char(char * buf, int size, char end);
 
 private:
     // URC handlers
@@ -97,20 +84,6 @@ private:
     void UUSORF_URC();
     void UUSOCL_URC();
     void UUPSDD_URC();
-
-    /** Find a socket from the list.
-     *
-     * @param id       Socket ID.
-     * @return         Socket if True, otherwise NULL.
-     */
-    CellularSocket * find_socket(int id = SOCKET_UNUSED);
-
-    /** Clear out the storage for a socket.
-     *
-     * @param id       Cellular Socket.
-     * @return         None
-     */
-    void clear_socket(CellularSocket * socket);
 };
 } // namespace mbed
 #endif /* UBLOX_AT_CELLULARSTACK_H_ */
