@@ -16,6 +16,7 @@
  */
 
 #include "UBLOX_AT_CellularNetwork.h"
+#include "UBLOX_AT_CellularStack.h"
 
 using namespace mbed;
 
@@ -26,6 +27,15 @@ UBLOX_AT_CellularNetwork::UBLOX_AT_CellularNetwork(ATHandler &atHandler) : AT_Ce
 
 UBLOX_AT_CellularNetwork::~UBLOX_AT_CellularNetwork()
 {
+
+}
+
+NetworkStack *UBLOX_AT_CellularNetwork::get_stack()
+{
+    if (!_stack) {
+        _stack = new UBLOX_AT_CellularStack(_at, _cid, _ip_stack_type);
+    }
+    return _stack;
 }
 
 bool UBLOX_AT_CellularNetwork::get_modem_stack_type(nsapi_ip_stack_t requested_stack)

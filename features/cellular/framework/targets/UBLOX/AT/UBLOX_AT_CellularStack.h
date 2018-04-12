@@ -20,8 +20,10 @@
 #include "AT_CellularStack.h"
 #include "CellularUtil.h"
 
-//#define BC95_SOCKET_MAX 7
-//#define BC95_MAX_PACKET_SIZE 512
+//TO DO add target based
+#define UBLOX_U201_SOCKET_MAX 7
+#define UBLOX_U201_AT_COMMAND_BUFFER_SIZE 256
+#define UBLOX_U201_MAX_PACKET_SIZE 1500
 
 namespace mbed {
 
@@ -31,52 +33,30 @@ public:
     UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, nsapi_ip_stack_t stack_type);
     virtual ~UBLOX_AT_CellularStack();
 
+protected: // NetworkStack
+
+    virtual nsapi_error_t socket_listen(nsapi_socket_t handle, int backlog);
+
+    virtual nsapi_error_t socket_accept(nsapi_socket_t server,
+                                        nsapi_socket_t *handle, SocketAddress *address=0);
 
 protected: // AT_CellularStack
 
-    /** Lock a mutex when accessing the modem.
-     */
-    void lock(void)     { _mtx.lock(); }
+    virtual int get_max_socket_count();
 
-    /** Helper to make sure that lock unlock pair is always balanced
-     */
-    #define LOCK()         { lock()
+    virtual int get_max_packet_size();
 
-    /** Unlock the modem when done accessing it.
-     */
-    void unlock(void)   { _mtx.unlock(); }
+    virtual bool is_protocol_supported(nsapi_protocol_t protocol);
 
-    /** Helper to make sure that lock unlock pair is always balanced
-     */
-    #define UNLOCK()       } unlock()
+    virtual nsapi_error_t socket_close_impl(int sock_id);
 
-    virtual const char *get_ip_address();
+    virtual nsapi_error_t create_socket_impl(CellularSocket *socket);
 
-    virtual nsapi_error_t socket_open(nsapi_socket_t *handle, nsapi_protocol_t proto);
+    virtual nsapi_size_or_error_t socket_sendto_impl(CellularSocket *socket, const SocketAddress &address,
+            const void *data, nsapi_size_t size);
 
-    virtual nsapi_error_t socket_close(nsapi_socket_t handle);
-
-    virtual nsapi_error_t socket_bind(nsapi_socket_t handle, const SocketAddress &address);
-
-    // Unsupported TCP server function.
-    virtual nsapi_error_t socket_listen(nsapi_socket_t handle, int backlog);
-
-    virtual nsapi_error_t socket_connect(nsapi_socket_t handle, const SocketAddress &address);
-
-    // Unsupported TCP server function.
-    virtual nsapi_error_t socket_accept(nsapi_socket_t server, nsapi_socket_t *handle, SocketAddress *address=0);
-
-    virtual nsapi_size_or_error_t socket_send(nsapi_socket_t handle, const void *data, nsapi_size_t size);
-
-    virtual nsapi_size_or_error_t socket_recv(nsapi_socket_t handle, void *data, nsapi_size_t size);
-
-    virtual nsapi_size_or_error_t socket_sendto(nsapi_socket_t handle, const SocketAddress &address, const void *data, nsapi_size_t size);
-
-    virtual nsapi_size_or_error_t socket_recvfrom(nsapi_socket_t handle, SocketAddress *address, void *buffer, nsapi_size_t size);
-
-    virtual void socket_attach(nsapi_socket_t handle, void (*callback)(void *), void *data);
-
-    int read_at_to_char(char * buf, int size, char end);
+    virtual nsapi_size_or_error_t socket_recvfrom_impl(CellularSocket *socket, SocketAddress *address,
+            void *buffer, nsapi_size_t size);
 
 private:
     // URC handlers
