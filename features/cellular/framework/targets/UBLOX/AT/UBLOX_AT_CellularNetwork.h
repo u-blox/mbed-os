@@ -29,6 +29,7 @@ public:
     virtual ~UBLOX_AT_CellularNetwork();
 
 protected:
+    virtual NetworkStack *get_stack();
 
     virtual nsapi_error_t set_access_technology_impl(operator_t::RadioAccessTechnology opRat);
 
