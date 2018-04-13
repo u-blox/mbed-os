@@ -32,12 +32,13 @@
 
 err_t LWIP::Interface::emac_low_level_output(struct netif *netif, struct pbuf *p)
 {
+    /* Increase reference counter since lwip stores handle to pbuf and frees
+    it after output */
+    pbuf_ref(p);
+
 #if MBED_EMAC_LWIP_L2_BRIDGE
     return emac_lwip_l2b_output(netif, (emac_mem_buf_t*) p);
 #else
-    /* Increase reference counter since lwip stores handle to pbuf and frees
-       it after output */
-    pbuf_ref(p);
 
     LWIP::Interface *mbed_if = static_cast<LWIP::Interface *>(netif->state);
     bool ret = mbed_if->emac->link_out(p);
