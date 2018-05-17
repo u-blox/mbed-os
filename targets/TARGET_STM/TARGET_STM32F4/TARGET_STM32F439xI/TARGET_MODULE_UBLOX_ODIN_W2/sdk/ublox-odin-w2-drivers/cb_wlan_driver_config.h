@@ -123,7 +123,7 @@ typedef enum targetConfigParams {
     cbTARGET_CFG_SET_TSETTING = 2000,                            //!< Pipe to @ref cbWM_tSet.
     cbTARGET_CFG_GET_GSETTING = 3000,                            //!< Pipe to @ref cbWM_gGet.
     cbTARGET_CFG_GET_TSETTING = 4000,                            //!< Pipe to @ref cbWM_tGet.
-}cbTARGET_ConfigParams;
+} cbTARGET_ConfigParams;
 
 #define cbTARGET_GSETTING_REG(X)	((cb_uint32)((X) - cbTARGET_GSETTING_START))
 
@@ -185,12 +185,12 @@ typedef enum {
 typedef enum {
     cbWLAN_ONE_ANTENNA = 1,
     cbWLAN_TWO_ANTENNAS
-}cbWLAN_NUMBER_OF_ANTENNAS;
+} cbWLAN_NUMBER_OF_ANTENNAS;
 
 typedef enum {
     cbWLAN_PRIMARY_ANTENNA_ONE = 1,
     cbWLAN_PRIMARY_ANTENNA_TWO
-}cbWLAN_PRIMARY_ANTENNA;
+} cbWLAN_PRIMARY_ANTENNA;
 /*===========================================================================
  * FUNCTIONS
  *=========================================================================*/

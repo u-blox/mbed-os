@@ -619,7 +619,7 @@ typedef struct cbWLAN_ApStaInformation {
 typedef struct cbWLAN_HTCapabilities_st {
     cbWLAN_RateMask rates;
     cb_uint16 info;
-}cbWLAN_HTCapabilities;
+} cbWLAN_HTCapabilities;
 /*---------------------------------------------------------------------------
  * VARIABLE DECLARATIONS
  *-------------------------------------------------------------------------*/
