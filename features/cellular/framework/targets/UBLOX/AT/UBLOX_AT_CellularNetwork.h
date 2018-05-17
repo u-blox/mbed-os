@@ -28,6 +28,8 @@ public:
     UBLOX_AT_CellularNetwork(ATHandler &atHandler);
     virtual ~UBLOX_AT_CellularNetwork();
 
+    virtual nsapi_error_t connect();
+
 protected:
     virtual NetworkStack *get_stack();
 
@@ -36,6 +38,36 @@ protected:
     virtual bool get_modem_stack_type(nsapi_ip_stack_t requested_stack);
 
     virtual bool has_registration(RegistrationType rat);
+	
+private:
+
+    #define PROFILE "0"
+
+    /** The type of authentication to use.
+     */
+    nsapi_security_t _auth;
+
+    nsapi_error_t open_data_channel();
+
+    /** Activate one of the on-board modem's connection profiles.
+     *
+     * @param apn      The APN to use.
+     * @param username The user name to use.
+     * @param password The password to use.
+     * @param auth     The authentication method to use
+     *                 (NSAPI_SECURITY_NONE, NSAPI_SECURITY_PAP,
+     *                 NSAPI_SECURITY_CHAP or NSAPI_SECURITY_UNKNOWN).
+     * @return         True if successful, otherwise false.
+     */
+    bool activate_profile(const char* apn, const char* username, const char* password);
+
+    int nsapi_security_to_modem_security(nsapi_security_t nsapi_security);
+
+    /** Disconnect the on board IP stack of the modem.
+     *
+     * @return         True if successful, otherwise false.
+     */
+    virtual bool disconnect_modem_stack();
 };
 
 } // namespace mbed

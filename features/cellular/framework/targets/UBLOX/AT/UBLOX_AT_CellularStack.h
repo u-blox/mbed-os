@@ -23,7 +23,7 @@
 //TO DO add target based
 #define UBLOX_U201_SOCKET_MAX 7
 #define UBLOX_U201_AT_COMMAND_BUFFER_SIZE 256
-#define UBLOX_U201_MAX_PACKET_SIZE 1500
+#define UBLOX_U201_MAX_PACKET_SIZE 1024
 
 namespace mbed {
 
@@ -32,6 +32,8 @@ class UBLOX_AT_CellularStack : public AT_CellularStack
 public:
     UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, nsapi_ip_stack_t stack_type);
     virtual ~UBLOX_AT_CellularStack();
+	
+    virtual const char *get_ip_address();
 
 protected: // NetworkStack
 
@@ -41,6 +43,11 @@ protected: // NetworkStack
                                         nsapi_socket_t *handle, SocketAddress *address=0);
 
 protected: // AT_CellularStack
+
+    /** Socket "unused" value.
+     */
+    #define SOCKET_UNUSED -1
+    #define PROFILE "0"
 
     virtual int get_max_socket_count();
 
@@ -64,6 +71,9 @@ private:
     void UUSORF_URC();
     void UUSOCL_URC();
     void UUPSDD_URC();
+	
+    CellularSocket * find_socket(int id = SOCKET_UNUSED);
+    void clear_socket(CellularSocket * socket);
 };
 } // namespace mbed
 #endif /* UBLOX_AT_CELLULARSTACK_H_ */
