@@ -78,14 +78,14 @@ cb_boolean handleWlanTargetCopyFromDataFrame(uint8_t* buffer, cbWLANTARGET_dataF
     EMACMemoryManager *mem = WIFI_EMAC::get_instance().memory_manager;
     MBED_ASSERT(mem != NULL);
 
-    //emac_mem_buf_t* phead = (emac_mem_buf_t *)frame;
-    emac_mem_buf_t* pbuf = (emac_mem_buf_t *)frame;
+    emac_mem_buf_t* phead = static_cast<emac_mem_buf_t *>(frame);
+    emac_mem_buf_t* pbuf;
     uint32_t copySize, bytesCopied = 0, pbufOffset = 0;
 
     MBED_ASSERT(frame != NULL);
     MBED_ASSERT(buffer != NULL);
 
-    //pbuf = mem->get_next(phead);
+    pbuf = phead;
     while (pbuf != NULL) {
         if ((pbufOffset + mem->get_len(pbuf)) >= offsetInFrame) {
             copySize = cb_MIN(size, mem->get_len(pbuf) - (offsetInFrame - pbufOffset));
@@ -117,14 +117,14 @@ cb_boolean handleWlanTargetCopyToDataFrame(cbWLANTARGET_dataFrame* frame, uint8_
     EMACMemoryManager *mem = WIFI_EMAC::get_instance().memory_manager;
     MBED_ASSERT(mem != NULL);
 
-    //emac_mem_buf_t* phead = (emac_mem_buf_t *)frame;
-    emac_mem_buf_t* pbuf = (emac_mem_buf_t *)frame;
+    emac_mem_buf_t* phead = static_cast<emac_mem_buf_t *>(frame);
+    emac_mem_buf_t* pbuf;
     uint32_t copySize, bytesCopied = 0, pbufOffset = 0;
 
     MBED_ASSERT(frame != NULL);
     MBED_ASSERT(buffer != NULL);
 
-    //pbuf = mem->get_next(phead);
+    pbuf = phead;
     while (pbuf != NULL) {
         if ((pbufOffset + mem->get_len(pbuf)) >= offsetInFrame) {
             copySize = cb_MIN(size, mem->get_len(pbuf) - (offsetInFrame - pbufOffset));
@@ -148,28 +148,28 @@ cb_boolean handleWlanTargetCopyToDataFrame(cbWLANTARGET_dataFrame* frame, uint8_
 
     MBED_ASSERT(bytesCopied <= size);
 
-    return (bytesCopied == size);
+    return (bytesCopied == size)
 }
 
 cbWLANTARGET_dataFrame* handleWlanTargetAllocDataFrame(uint32_t size)
 {
     EMACMemoryManager *mem = WIFI_EMAC::get_instance().memory_manager;
     MBED_ASSERT(mem != NULL);
-    return (cbWLANTARGET_dataFrame*)mem->alloc_pool(size,0);
+    return (cbWLANTARGET_dataFrame*)mem->alloc_pool(size, 0);
 }
 
 void handleWlanTargetFreeDataFrame(cbWLANTARGET_dataFrame* frame)
 {
     EMACMemoryManager *mem = WIFI_EMAC::get_instance().memory_manager;
     MBED_ASSERT(mem != NULL);
-    mem->free((emac_mem_buf_t*)frame);
+    mem->free(static_cast<emac_mem_buf_t *>(frame));
 }
 
 uint32_t handleWlanTargetGetDataFrameSize(cbWLANTARGET_dataFrame* frame)
 {
     EMACMemoryManager *mem = WIFI_EMAC::get_instance().memory_manager;
     MBED_ASSERT(mem != NULL);
-    return mem->get_total_len((emac_mem_buf_t*)frame);
+    return mem->get_total_len(static_cast<emac_mem_buf_t *>(frame));
 }
 
 uint8_t handleWlanTargetGetDataFrameTID(cbWLANTARGET_dataFrame* frame)
@@ -293,12 +293,6 @@ void WIFI_EMAC::set_all_multicast(bool all)
 WIFI_EMAC &WIFI_EMAC::get_instance() {
     static WIFI_EMAC emac;
     return emac;
-}
-
-// Weak so a module can override
-MBED_WEAK EMAC &EMAC::get_default_instance()
-{
-    return WIFI_EMAC::get_instance();
 }
 
 #endif // DEVICE_WIFI
