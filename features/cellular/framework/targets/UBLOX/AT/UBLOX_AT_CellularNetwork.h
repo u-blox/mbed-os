@@ -19,6 +19,7 @@
 #define UBLOX_AT_CELLULAR_NETWORK_H_
 
 #include "AT_CellularNetwork.h"
+#include "APN_db.h"
 
 namespace mbed {
 
@@ -38,15 +39,25 @@ protected:
     virtual bool get_modem_stack_type(nsapi_ip_stack_t requested_stack);
 
     virtual bool has_registration(RegistrationType rat);
-	
+
 private:
 
+    /** The profile to use (on board the modem).
+     */
     #define PROFILE "0"
+
+    /** Length of IMSI buffer.
+     */
+    #define MAX_IMSI_LENGTH 15
 
     /** The type of authentication to use.
      */
     nsapi_security_t _auth;
 
+    /** Connect the on board IP stack of the modem.
+     *
+     * @return      True if successful, otherwise false.
+     */
     nsapi_error_t open_data_channel();
 
     /** Activate one of the on-board modem's connection profiles.
@@ -61,13 +72,26 @@ private:
      */
     bool activate_profile(const char* apn, const char* username, const char* password);
 
+    /** Convert nsapi_security_t to the modem security numbers.
+     *
+     * @param nsapi_security      Security protocol.
+     * @return                    Modem security numbers.
+     */
     int nsapi_security_to_modem_security(nsapi_security_t nsapi_security);
 
     /** Disconnect the on board IP stack of the modem.
      *
-     * @return         True if successful, otherwise false.
+     * @return      True if successful, otherwise false.
      */
-    virtual bool disconnect_modem_stack();
+    bool disconnect_modem_stack();
+
+    /** Read IMSI of modem.
+     */
+    nsapi_error_t get_imsi(char* imsi);
+
+    /** Get the next set of credentials from the database.
+     */
+    void get_next_credentials(char ** config);
 };
 
 } // namespace mbed

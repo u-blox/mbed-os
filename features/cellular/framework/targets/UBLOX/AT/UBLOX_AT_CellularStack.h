@@ -32,11 +32,13 @@ class UBLOX_AT_CellularStack : public AT_CellularStack
 public:
     UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, nsapi_ip_stack_t stack_type);
     virtual ~UBLOX_AT_CellularStack();
-	
+
     virtual const char *get_ip_address();
 
-protected: // NetworkStack
+    virtual nsapi_error_t gethostbyname(const char *host,
+            SocketAddress *address, nsapi_version_t version = NSAPI_UNSPEC);
 
+protected:
     virtual nsapi_error_t socket_listen(nsapi_socket_t handle, int backlog);
 
     virtual nsapi_error_t socket_accept(nsapi_socket_t server,
@@ -47,6 +49,9 @@ protected: // AT_CellularStack
     /** Socket "unused" value.
      */
     #define SOCKET_UNUSED -1
+
+    /** The profile to use (on board the modem).
+     */
     #define PROFILE "0"
 
     virtual int get_max_socket_count();
@@ -55,15 +60,19 @@ protected: // AT_CellularStack
 
     virtual bool is_protocol_supported(nsapi_protocol_t protocol);
 
-    virtual nsapi_error_t socket_close_impl(int sock_id);
-
+    virtual nsapi_error_t socket_open(nsapi_socket_t *handle, nsapi_protocol_t proto);
+	
     virtual nsapi_error_t create_socket_impl(CellularSocket *socket);
+	
+    virtual nsapi_error_t socket_connect(nsapi_socket_t handle, const SocketAddress &address);
 
     virtual nsapi_size_or_error_t socket_sendto_impl(CellularSocket *socket, const SocketAddress &address,
             const void *data, nsapi_size_t size);
 
     virtual nsapi_size_or_error_t socket_recvfrom_impl(CellularSocket *socket, SocketAddress *address,
             void *buffer, nsapi_size_t size);
+			
+    virtual nsapi_error_t socket_close_impl(int sock_id);
 
 private:
     // URC handlers
@@ -71,8 +80,19 @@ private:
     void UUSORF_URC();
     void UUSOCL_URC();
     void UUPSDD_URC();
-	
+
+    /** Find a socket from the list.
+     *
+     * @param id       Socket ID.
+     * @return         Socket if True, otherwise NULL.
+     */
     CellularSocket * find_socket(int id = SOCKET_UNUSED);
+
+    /** Clear out the storage for a socket.
+     *
+     * @param id       Cellular Socket.
+     * @return         None
+     */
     void clear_socket(CellularSocket * socket);
 };
 } // namespace mbed
