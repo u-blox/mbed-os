@@ -22,14 +22,18 @@ using namespace mbed;
 
 UBLOX_AT_CellularNetwork::UBLOX_AT_CellularNetwork(ATHandler &atHandler) : AT_CellularNetwork(atHandler)
 {
-	_op_act = operator_t::RAT_UTRAN;
+    _op_act = operator_t::RAT_UTRAN;
     // The authentication to use
     _auth = NSAPI_SECURITY_UNKNOWN;
 }
 
 UBLOX_AT_CellularNetwork::~UBLOX_AT_CellularNetwork()
 {
-	disconnect_modem_stack();
+    disconnect_modem_stack();
+
+    if (_connection_status_cb) {
+        _connection_status_cb(NSAPI_EVENT_CONNECTION_STATUS_CHANGE, NSAPI_ERROR_CONNECTION_LOST);
+    }
 }
 
 NetworkStack *UBLOX_AT_CellularNetwork::get_stack()
@@ -83,32 +87,26 @@ nsapi_error_t UBLOX_AT_CellularNetwork::connect()
         if (_new_context_set) {
             disconnect_modem_stack();
         }
-        _at.unlock();
-
         _connect_status = NSAPI_STATUS_DISCONNECTED;
-        if (_connection_status_cb) {
-            _connection_status_cb(NSAPI_EVENT_CONNECTION_STATUS_CHANGE, NSAPI_STATUS_DISCONNECTED);
-        }
-
-        return err;
+    } else {
+        _connect_status = NSAPI_STATUS_GLOBAL_UP;
     }
     _at.unlock();
 
-    _connect_status = NSAPI_STATUS_GLOBAL_UP;
     if (_connection_status_cb) {
-        _connection_status_cb(NSAPI_EVENT_CONNECTION_STATUS_CHANGE, NSAPI_STATUS_GLOBAL_UP);
+        _connection_status_cb(NSAPI_EVENT_CONNECTION_STATUS_CHANGE, _connect_status);
     }
 
-    return NSAPI_ERROR_OK;
+    return err;
 }
 
 nsapi_error_t UBLOX_AT_CellularNetwork::open_data_channel()
 {
     bool success = false;
     int active = 0;
-    const char * config = NULL;
-    //old way: _at.send("ATD*99***%d#", _cid) && _at.recv("CONNECT");
+    char * config = NULL;
     nsapi_error_t err = NSAPI_ERROR_NO_CONNECTION;
+    char imsi[MAX_IMSI_LENGTH+1];
 
     // do check for stack to validate that we have support for stack
     _stack = get_stack();
@@ -125,15 +123,25 @@ nsapi_error_t UBLOX_AT_CellularNetwork::open_data_channel()
     _at.resp_stop();
 
     if (active == 0) {
+        // If the caller hasn't entered an APN, try to find it
+        if (_apn == NULL) {
+            err = get_imsi(imsi);
+            if (err == NSAPI_ERROR_OK) {
+                config = (char*)apnconfig(imsi);
+            }
+        }
+
         // Attempt to connect
         do {
+            get_next_credentials(&config);
+            _auth = (*_uname && *_pwd) ? _auth : NSAPI_SECURITY_NONE;
             success = activate_profile(_apn, _uname, _pwd);
         } while (!success && config && *config);
     } else {
         // If the profile is already active, we're good
         success = true;
     }
-	
+
     err = (_at.get_last_error() == NSAPI_ERROR_OK) ? NSAPI_ERROR_OK : NSAPI_ERROR_NO_CONNECTION;
 
     return err;
@@ -148,43 +156,40 @@ bool UBLOX_AT_CellularNetwork::activate_profile(const char* apn,
 
     // Set up the APN
     if (*apn) {
+        success = false;
         _at.cmd_start("AT+UPSD=0,1,");
         _at.write_string(apn);
         _at.cmd_stop();
         _at.resp_start();
         _at.resp_stop();
 
-        if(_at.get_last_error()) {
-            success = false;
-        } else {
+        if (_at.get_last_error() == NSAPI_ERROR_OK) {
             success = true;
         }
     }
-	
+    // Set up the UserName
     if (success && *username) {
+        success = false;
         _at.cmd_start("AT+UPSD=" PROFILE ",2,");
         _at.write_string(username);
         _at.cmd_stop();
         _at.resp_start();
         _at.resp_stop();
 
-        if (_at.get_last_error()) {
-            success = false;
-        } else {
+        if (_at.get_last_error() == NSAPI_ERROR_OK) {
             success = true;
         }
     }
-	
+    // Set up the Password
     if (success && *password) {
+        success = false;
         _at.cmd_start("AT+UPSD=" PROFILE ",3,");
         _at.write_string(password);
         _at.cmd_stop();
         _at.resp_start();
         _at.resp_stop();
 
-        if(_at.get_last_error()) {
-            success = false;
-        } else {
+        if (_at.get_last_error() == NSAPI_ERROR_OK) {
             success = true;
         }
     }
@@ -194,8 +199,6 @@ bool UBLOX_AT_CellularNetwork::activate_profile(const char* apn,
         _at.cmd_stop();
         _at.resp_start();
         _at.resp_stop();
-
-        _auth = NSAPI_SECURITY_NONE;
 
         // Set up the authentication protocol
         // 0 = none
@@ -210,12 +213,19 @@ bool UBLOX_AT_CellularNetwork::activate_profile(const char* apn,
                 _at.resp_start();
                 _at.resp_stop();
 
-                _at.cmd_start("AT+UPSDA=0,3");
-                _at.cmd_stop();
-                _at.resp_start();
-                _at.resp_stop();
+                if (_at.get_last_error() == NSAPI_ERROR_OK) {
+                    // Activate, wait upto 30 seconds for the connection to be made
+                    _at.set_at_timeout(30000);
+                    _at.cmd_start("AT+UPSDA=0,3");
+                    _at.cmd_stop();
+                    _at.resp_start();
+                    _at.resp_stop();
+                    _at.restore_at_timeout();
 
-                activated = 1;
+                    if (_at.get_last_error() == NSAPI_ERROR_OK) {
+                        activated = true;
+                    }
+                }
             }
         }
     }
@@ -258,13 +268,42 @@ bool UBLOX_AT_CellularNetwork::disconnect_modem_stack()
     if (get_ip_address() != NULL) {
         _at.cmd_start("AT+UPSDA=" PROFILE ",4");
         _at.cmd_stop();
+        _at.resp_start();
+        _at.resp_stop();
 
-        _at.resp_start("OK");
-        if (_at.info_resp()) {
+        if (_at.get_last_error() == NSAPI_ERROR_OK) {
             success = true;
         }
-        _at.resp_stop();
     }
-	
+
     return success;
+}
+
+nsapi_error_t UBLOX_AT_CellularNetwork::get_imsi(char* imsi)
+{
+    _at.lock();
+    _at.cmd_start("AT+CIMI");
+    _at.cmd_stop();
+    _at.resp_start();
+    int len = _at.read_string(imsi, MAX_IMSI_LENGTH);
+    if (len > 0) {
+        imsi[len] = '\0';
+    }
+    _at.resp_stop();
+
+    return _at.unlock_return_error();
+}
+
+// Get the next set of credentials, based on IMSI.
+void UBLOX_AT_CellularNetwork::get_next_credentials(char ** config)
+{
+    if (*config) {
+        _apn    = _APN_GET(*config);
+        _uname  = _APN_GET(*config);
+        _pwd    = _APN_GET(*config);
+    }
+
+    _apn    = (char*)(_apn     ?  _apn    : "");
+    _uname  = (char*)(_uname   ?  _uname  : "");
+    _pwd    = (char*)(_pwd     ?  _pwd    : "");
 }

@@ -45,34 +45,6 @@ nsapi_error_t UBLOX_AT_CellularStack::socket_accept(void *server, void **socket,
     return NSAPI_ERROR_UNSUPPORTED;
 }
 
-// Read up to size bytes from the AT interface up to a "end".
-// Note: the AT interface should be locked before this is called.
-/*int UBLOX_AT_CellularStack::read_at_to_char(char * buf, int size, char end)
-{
-    int count = 0;
-   int x = 0;
-
-    if (size > 0) {
-        for (count = 0; (count < size) && (x >= 0) && (x != end); count++) {
-            x = _at->getc();
-            *(buf + count) = (char) x;
-        }
-
-        count--;
-        *(buf + count) = 0;
-
-        // Convert line endings:
-        // If end was '\n' (0x0a) and the preceding character was 0x0d, then
-        // overwrite that with null as well.
-        if ((count > 0) && (end == '\n') && (*(buf + count - 1) == '\x0d')) {
-            count--;
-            *(buf + count) = 0;
-        }
-    }
-
-    return count;
-}*/
-
 // Callback for Socket Read URC.
 void UBLOX_AT_CellularStack::UUSORD_URC()
 {
@@ -126,7 +98,6 @@ void UBLOX_AT_CellularStack::UUSOCL_URC()
     char buf[32];
     CellularSocket *socket;
 
-    // already in an _at->recv()
     // +UUSOCL: <socket>
     if (_at.read_string(buf, sizeof (buf), '\n') > 0) {
         if (sscanf(buf, ": %d", &a) == 1) {
@@ -165,19 +136,56 @@ int UBLOX_AT_CellularStack::get_max_packet_size()
 
 bool UBLOX_AT_CellularStack::is_protocol_supported(nsapi_protocol_t protocol)
 {
-	//TODO: ADD TCP here
-    return (protocol == NSAPI_UDP);
+    return (protocol == NSAPI_UDP || protocol == NSAPI_TCP);
 }
 
-nsapi_error_t UBLOX_AT_CellularStack::socket_close_impl(int sock_id)
+nsapi_error_t UBLOX_AT_CellularStack::socket_open(nsapi_socket_t *handle, nsapi_protocol_t proto)
 {
-    _at.cmd_start("AT+USOCL=");
-    _at.write_int(sock_id);
-    _at.cmd_stop();
-    _at.resp_start();
-    _at.resp_stop();
+    if (!is_protocol_supported(proto) || !handle) {
+        return NSAPI_ERROR_UNSUPPORTED;
+    }
 
-    return _at.get_last_error();
+    int max_socket_count = get_max_socket_count();
+
+    if (!_socket) {
+        _socket = new CellularSocket*[max_socket_count];
+        if (!_socket) {
+            return NSAPI_ERROR_NO_SOCKET;
+        }
+        _socket_count = max_socket_count;
+        for (int i = 0; i < max_socket_count; i++) {
+            _socket[i] = 0;
+        }
+    }
+
+    int index = -1;
+    for (int i = 0; i < max_socket_count; i++) {
+        if (!_socket[i]) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        return NSAPI_ERROR_NO_SOCKET;
+    }
+
+    // create local socket structure, socket on modem is created when app calls sendto/recvfrom
+    _socket[index] = new CellularSocket;
+    CellularSocket *psock;
+    psock = _socket[index];
+    memset(psock, 0, sizeof(CellularSocket));
+    SocketAddress addr(0, get_dynamic_ip_port());
+    psock->id = index;
+    psock->localAddress = addr;
+    psock->proto = proto;
+    nsapi_error_t err = create_socket_impl(psock);
+
+    if (err == NSAPI_ERROR_OK) {
+        *handle = psock;
+    }
+
+    return err;
 }
 
 nsapi_error_t UBLOX_AT_CellularStack::create_socket_impl(CellularSocket *socket)
@@ -185,22 +193,25 @@ nsapi_error_t UBLOX_AT_CellularStack::create_socket_impl(CellularSocket *socket)
     int sock_id;
     bool socketOpenWorking = false;
 
+    _at.lock();
     if (socket->proto == NSAPI_UDP) {
-        _at.cmd_start("AT+USOCR=17,");
-        _at.write_int(socket->localAddress.get_port());
+        _at.cmd_start("AT+USOCR=17");
         _at.cmd_stop();
 
         _at.resp_start("+USOCR:");
         sock_id = _at.read_int();
         _at.resp_stop();
+    } else if(socket->proto == NSAPI_TCP) {
+        _at.cmd_start("AT+USOCR=6");
+        _at.cmd_stop();
 
-        socketOpenWorking = (_at.get_last_error() == NSAPI_ERROR_OK);
-    }
-    else if(socket->proto == NSAPI_TCP)
-    {
-    	// TODO
-    }
+        _at.resp_start("+USOCR:");
+        sock_id = _at.read_int();
+        _at.resp_stop();
+    } // Unsupported protocol is checked in "is_protocol_supported" function 
+    _at.unlock();
 
+    socketOpenWorking = (_at.get_last_error() == NSAPI_ERROR_OK);
     if (!socketOpenWorking) {
         return NSAPI_ERROR_NO_SOCKET;
     }
@@ -219,28 +230,74 @@ nsapi_error_t UBLOX_AT_CellularStack::create_socket_impl(CellularSocket *socket)
     return NSAPI_ERROR_OK;
 }
 
+nsapi_error_t UBLOX_AT_CellularStack::socket_connect(nsapi_socket_t handle, const SocketAddress &addr)
+{
+    CellularSocket *socket = (CellularSocket *)handle;
+
+    if (!socket) {
+        return NSAPI_ERROR_DEVICE_ERROR;
+    }
+
+    _at.lock();
+    _at.cmd_start("AT+USOCO=");
+    _at.write_int(socket->id);
+    _at.write_string(addr.get_ip_address(), true);
+    _at.write_int(addr.get_port());
+    _at.cmd_stop();
+    _at.resp_start();
+    _at.resp_stop();
+    _at.unlock();
+
+    if (_at.get_last_error() == NSAPI_ERROR_OK) {
+        socket->remoteAddress = addr;
+        socket->connected = true;
+        return NSAPI_ERROR_OK;
+    }
+
+    return NSAPI_ERROR_NO_CONNECTION;
+}
+
 nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_sendto_impl(CellularSocket *socket, const SocketAddress &address,
         const void *data, nsapi_size_t size)
 {
     int sent_len = 0;
     uint8_t ch;
-	
-    _at.cmd_start("AT+USOST=");
-    _at.write_int(socket->id);
-    _at.write_string(address.get_ip_address(), true);
-    _at.write_int(address.get_port());
-    _at.write_int(size);
-    _at.cmd_stop();
-    wait_ms(50);
-    while (ch != '@') {
-	  _at.read_bytes(&ch, 1);
-    }
-    _at.write_bytes((uint8_t *)data, size);
 
-    _at.resp_start("+USOST:");
-    _at.skip_param(); // skip socket id
-    sent_len = _at.read_int();
-    _at.resp_stop();
+    _at.lock();
+    if (socket->proto == NSAPI_UDP) {
+        _at.cmd_start("AT+USOST=");
+        _at.write_int(socket->id);
+        _at.write_string(address.get_ip_address(), true);
+        _at.write_int(address.get_port());
+        _at.write_int(size);
+        _at.cmd_stop();
+        wait_ms(50);
+        while (ch != '@') {
+          _at.read_bytes(&ch, 1);
+        }
+        _at.write_bytes((uint8_t *)data, size);
+        
+        _at.resp_start("+USOST:");
+        _at.skip_param(); // skip socket id
+        sent_len = _at.read_int();
+        _at.resp_stop();
+    } else if (socket->proto == NSAPI_TCP) {
+        _at.cmd_start("AT+USOWR=");
+        _at.write_int(socket->id);
+        _at.write_int(size);
+        _at.cmd_stop();
+        wait_ms(50);
+        while (ch != '@') {
+          _at.read_bytes(&ch, 1);
+        }
+        _at.write_bytes((uint8_t *)data, size);
+        
+        _at.resp_start("+USOWR:");
+        _at.skip_param(); // skip socket id
+        sent_len = _at.read_int();
+        _at.resp_stop();
+    }
+    _at.unlock();
 
     if (_at.get_last_error() == NSAPI_ERROR_OK) {
         return sent_len;
@@ -252,33 +309,60 @@ nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_sendto_impl(CellularSocket 
 nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_recvfrom_impl(CellularSocket *socket, SocketAddress *address,
         void *buffer, nsapi_size_t size)
 {
+    char ipAddress[NSAPI_IP_SIZE];
     nsapi_size_or_error_t recv_len=0;
     int port;
-    char ip_address[NSAPI_IP_SIZE];
 
-    _at.cmd_start("AT+USORF=");
-    _at.write_int(socket->id);
-    _at.write_int(size);
-    _at.cmd_stop();
+    _at.lock();
+    if (socket->proto == NSAPI_UDP) {
+        _at.cmd_start("AT+USORF=");
+        _at.write_int(socket->id);
+        _at.write_int(size);
+        _at.cmd_stop();
 
-    _at.resp_start("+USORF:");
-    _at.skip_param(); // receiving socket id
-    _at.read_string(ip_address, sizeof(ip_address));
-    port = _at.read_int();
-    recv_len = _at.read_int();
-    _at.read_string((char*)buffer, size);
-    _at.resp_stop();
+        _at.resp_start("+USORF:");
+        _at.skip_param(); // receiving socket id
+        _at.read_string(ipAddress, sizeof(ipAddress));
+        port = _at.read_int();
+        recv_len = _at.read_int();
+        _at.read_string((char*)buffer, size);
+        _at.resp_stop();
+    } else if (socket->proto == NSAPI_TCP) {
+        _at.cmd_start("AT+USORD=");
+        _at.write_int(socket->id);
+        _at.write_int(size);
+        _at.cmd_stop();
+        
+        _at.resp_start("+USORD:");
+        _at.skip_param(); // receiving socket id
+        recv_len = _at.read_int();
+        _at.read_bytes((uint8_t *)buffer, size);
+        _at.resp_stop();
+    }
+    _at.unlock();
+
 
     if (!recv_len || (recv_len == -1) || (_at.get_last_error() != NSAPI_ERROR_OK)) {
         return NSAPI_ERROR_WOULD_BLOCK;
     }
 
-    if (address) {
-        address->set_ip_address(ip_address);
+    if (socket->proto == NSAPI_UDP && address) {
+        address->set_ip_address(ipAddress);
         address->set_port(port);
     }
 
     return recv_len;
+}
+
+nsapi_error_t UBLOX_AT_CellularStack::socket_close_impl(int sock_id)
+{
+    _at.cmd_start("AT+USOCL=");
+    _at.write_int(sock_id);
+    _at.cmd_stop();
+    _at.resp_start();
+    _at.resp_stop();
+
+    return _at.get_last_error();
 }
 
 // Find or create a socket from the list.
@@ -310,7 +394,6 @@ void UBLOX_AT_CellularStack::clear_socket(CellularSocket * socket)
 const char * UBLOX_AT_CellularStack::get_ip_address()
 {
     _at.lock();
-
     _at.cmd_start("AT+UPSND=" PROFILE ",0");
     _at.cmd_stop();
 
@@ -331,11 +414,42 @@ const char * UBLOX_AT_CellularStack::get_ip_address()
             len = _at.read_string(_ip, PDP_IPV6_SIZE-1);
         }
     }
-
     _at.resp_stop();
     _at.unlock();
+	
     // we have at least IPV4 address
     convert_ipv6(_ip);
 
     return _ip;
+}
+
+nsapi_error_t UBLOX_AT_CellularStack::gethostbyname(const char *host, SocketAddress *address, nsapi_version_t version)
+{
+    char ipAddress[NSAPI_IP_SIZE];
+    nsapi_error_t err = NSAPI_ERROR_NO_CONNECTION;
+
+    _at.lock();
+    if (address->set_ip_address(host)) {
+        err = NSAPI_ERROR_OK;
+    } else {
+        // This interrogation can sometimes take longer than the usual 8 seconds
+        _at.cmd_start("AT+UDNSRN=0,");
+        _at.write_string(host, true);
+        _at.cmd_stop();
+        
+        _at.set_at_timeout(60000);
+        _at.resp_start("+UDNSRN:");
+        if (_at.info_resp()) {
+            _at.read_string(ipAddress, sizeof(ipAddress));
+            _at.resp_stop();
+        
+            if (address->set_ip_address(ipAddress)) {
+            	err = NSAPI_ERROR_OK;
+            }
+        }
+        _at.restore_at_timeout();
+    }
+    _at.unlock();
+
+    return err;
 }
