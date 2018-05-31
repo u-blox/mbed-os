@@ -22,7 +22,7 @@ using namespace mbed;
 
 UBLOX_AT_CellularNetwork::UBLOX_AT_CellularNetwork(ATHandler &atHandler) : AT_CellularNetwork(atHandler)
 {
-    _op_act = operator_t::RAT_UTRAN;
+    _op_act = RAT_UTRAN;
     // The authentication to use
     _auth = NSAPI_SECURITY_UNKNOWN;
 }
@@ -54,20 +54,20 @@ bool UBLOX_AT_CellularNetwork::has_registration(RegistrationType reg_type)
     return (reg_type == C_REG || reg_type == C_GREG);
 }
 
-nsapi_error_t UBLOX_AT_CellularNetwork::set_access_technology_impl(operator_t::RadioAccessTechnology opRat)
+nsapi_error_t UBLOX_AT_CellularNetwork::set_access_technology_impl(RadioAccessTechnology opRat)
 {
     switch(opRat) {
-    case operator_t::RAT_UTRAN:
-    case operator_t::RAT_EGPRS:
-    case operator_t::RAT_E_UTRAN:
-    case operator_t::RAT_CATM1:
-    case operator_t::RAT_NB1: {
+    case RAT_UTRAN:
+    case RAT_EGPRS:
+    case RAT_E_UTRAN:
+    case RAT_CATM1:
+    case RAT_NB1: {
     	// Do nothing
     }
     break;
     default: {
         //TODO: Set as unknown or force to NB1?
-        _op_act = operator_t::RAT_UNKNOWN;
+        _op_act = RAT_UNKNOWN;
         return NSAPI_ERROR_UNSUPPORTED;
     }
     break;

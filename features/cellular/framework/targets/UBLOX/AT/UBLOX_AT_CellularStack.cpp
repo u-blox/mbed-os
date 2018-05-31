@@ -16,8 +16,6 @@
  */
 
 #include "UBLOX_AT_CellularStack.h"
-#include "CellularUtil.h"
-#include "mbed_wait_api.h"
 
 using namespace mbed;
 using namespace mbed_cellular_util;
@@ -29,6 +27,8 @@ UBLOX_AT_CellularStack::UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, ns
     _at.set_urc_handler("+UUSORF:", callback(this, &UBLOX_AT_CellularStack::UUSORF_URC));
     _at.set_urc_handler("+UUSOCL:", callback(this, &UBLOX_AT_CellularStack::UUSOCL_URC));
     _at.set_urc_handler("+UUPSDD:", callback(this, &UBLOX_AT_CellularStack::UUPSDD_URC));
+	
+    pendingBytes = 0;
 }
 
 UBLOX_AT_CellularStack::~UBLOX_AT_CellularStack()
@@ -49,21 +49,19 @@ nsapi_error_t UBLOX_AT_CellularStack::socket_accept(void *server, void **socket,
 void UBLOX_AT_CellularStack::UUSORD_URC()
 {
     int a,b;
-    char buf[32];
     CellularSocket *socket;
 
-    // +UUSORD: <socket>,<length>
-    if (_at.read_string(buf, sizeof (buf), '\n') > 0) {
-        if (sscanf(buf, ": %d,%d", &a, &b) == 2) {
-            socket = find_socket(a);
-            if (socket != NULL) {
-                socket->rx_avail = true;
-                // No debug prints here as they can affect timing
-                // and cause data loss in UARTSerial
-                if (socket->_cb != NULL) {
-                    socket->_cb(socket->_data);
-                }
-            }
+    a =_at.read_int();
+    b =_at.read_int();
+
+    socket = find_socket(a);
+    if (socket != NULL) {
+        socket->rx_avail = true;
+        pendingBytes = b;
+        // No debug prints here as they can affect timing
+        // and cause data loss in UARTSerial
+        if (socket->_cb != NULL) {
+            socket->_cb(socket->_data);
         }
     }
 }
@@ -72,21 +70,19 @@ void UBLOX_AT_CellularStack::UUSORD_URC()
 void UBLOX_AT_CellularStack::UUSORF_URC()
 {
     int a,b;
-    char buf[32];
     CellularSocket *socket;
 
-    // +UUSORF: <socket>,<length>
-    if (_at.read_string(buf, sizeof (buf), '\n') > 0) {
-        if (sscanf(buf, ": %d,%d", &a, &b) == 2) {
-            socket = find_socket(a);
-            if (socket != NULL) {
-                socket->rx_avail = true;
-                // No debug prints here as they can affect timing
-                // and cause data loss in UARTSerial
-                if (socket->_cb != NULL) {
-                    socket->_cb(socket->_data);
-                }
-            }
+    a =_at.read_int();
+    b =_at.read_int();
+
+    socket = find_socket(a);
+    if (socket != NULL) {
+        socket->rx_avail = true;
+        pendingBytes = b;
+        // No debug prints here as they can affect timing
+        // and cause data loss in UARTSerial
+        if (socket->_cb != NULL) {
+            socket->_cb(socket->_data);
         }
     }
 }
@@ -95,43 +91,33 @@ void UBLOX_AT_CellularStack::UUSORF_URC()
 void UBLOX_AT_CellularStack::UUSOCL_URC()
 {
     int a;
-    char buf[32];
     CellularSocket *socket;
 
-    // +UUSOCL: <socket>
-    if (_at.read_string(buf, sizeof (buf), '\n') > 0) {
-        if (sscanf(buf, ": %d", &a) == 1) {
-            socket = find_socket(a);
-            clear_socket(socket);
-        }
-    }
+    a =_at.read_int();
+    socket = find_socket(a);
+    clear_socket(socket);
 }
 
 // Callback for UUPSDD.
 void UBLOX_AT_CellularStack::UUPSDD_URC()
 {
     int a;
-    char buf[32];
     CellularSocket *socket;
 
-    // +UUPSDD: <socket>
-    if (_at.read_string(buf, sizeof (buf), '\n') > 0) {
-        if (sscanf(buf, ": %d", &a) == 1) {
-            socket = find_socket(a);
-            clear_socket(socket);
-        }
-    }
+    a =_at.read_int();
+    socket = find_socket(a);
+    clear_socket(socket);
 }
 
 
 int UBLOX_AT_CellularStack::get_max_socket_count()
 {
-    return UBLOX_U201_SOCKET_MAX;
+    return UBLOX_MAX_SOCKET;
 }
 
 int UBLOX_AT_CellularStack::get_max_packet_size()
 {
-    return UBLOX_U201_MAX_PACKET_SIZE;
+    return UBLOX_MAX_PACKET_SIZE;
 }
 
 bool UBLOX_AT_CellularStack::is_protocol_supported(nsapi_protocol_t protocol)
@@ -190,7 +176,7 @@ nsapi_error_t UBLOX_AT_CellularStack::socket_open(nsapi_socket_t *handle, nsapi_
 
 nsapi_error_t UBLOX_AT_CellularStack::create_socket_impl(CellularSocket *socket)
 {
-    int sock_id;
+    int sock_id = 0;
     bool socketOpenWorking = false;
 
     _at.lock();
@@ -217,7 +203,7 @@ nsapi_error_t UBLOX_AT_CellularStack::create_socket_impl(CellularSocket *socket)
     }
 
     // Check for duplicate socket id delivered by modem
-    for (int i = 0; i < UBLOX_U201_SOCKET_MAX; i++) {
+    for (int i = 0; i < UBLOX_MAX_SOCKET; i++) {
         CellularSocket *sock = _socket[i];
         if (sock && sock->created && sock->id == sock_id) {
             return NSAPI_ERROR_NO_SOCKET;
@@ -260,47 +246,80 @@ nsapi_error_t UBLOX_AT_CellularStack::socket_connect(nsapi_socket_t handle, cons
 nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_sendto_impl(CellularSocket *socket, const SocketAddress &address,
         const void *data, nsapi_size_t size)
 {
+    bool success = true;
+    const char *buf = (const char *) data;
+    nsapi_size_t blk = UBLOX_MAX_PACKET_SIZE;
+    nsapi_size_t count = size;
     int sent_len = 0;
-    uint8_t ch;
+    uint8_t ch = 0;
 
     _at.lock();
     if (socket->proto == NSAPI_UDP) {
-        _at.cmd_start("AT+USOST=");
-        _at.write_int(socket->id);
-        _at.write_string(address.get_ip_address(), true);
-        _at.write_int(address.get_port());
-        _at.write_int(size);
-        _at.cmd_stop();
-        wait_ms(50);
-        while (ch != '@') {
-          _at.read_bytes(&ch, 1);
+        while ((count > 0) && success) {
+            if (count < blk) {
+                blk = count;
+            }
+            _at.cmd_start("AT+USOST=");
+            _at.write_int(socket->id);
+            _at.write_string(address.get_ip_address(), true);
+            _at.write_int(address.get_port());
+            _at.write_int(blk);
+            _at.cmd_stop();
+            wait_ms(50);
+            while (ch != '@') {
+              _at.read_bytes(&ch, 1);
+            }
+            _at.write_bytes((uint8_t *)buf, blk);
+
+            _at.resp_start("+USOST:");
+            _at.skip_param(); // skip socket id
+            sent_len = _at.read_int();
+            _at.resp_stop();
+
+            if ((sent_len >= (int) blk) &&
+            	(_at.get_last_error() == NSAPI_ERROR_OK)) {
+            } else {
+            	success = false;
+            }
+
+            buf += blk;
+            count -= blk;
         }
-        _at.write_bytes((uint8_t *)data, size);
-        
-        _at.resp_start("+USOST:");
-        _at.skip_param(); // skip socket id
-        sent_len = _at.read_int();
-        _at.resp_stop();
     } else if (socket->proto == NSAPI_TCP) {
-        _at.cmd_start("AT+USOWR=");
-        _at.write_int(socket->id);
-        _at.write_int(size);
-        _at.cmd_stop();
-        wait_ms(50);
-        while (ch != '@') {
-          _at.read_bytes(&ch, 1);
+    	while ((count > 0) && success) {
+            if (count < blk) {
+                blk = count;
+            }
+            _at.cmd_start("AT+USOWR=");
+            _at.write_int(socket->id);
+            _at.write_int(blk);
+            _at.cmd_stop();
+            wait_ms(50);
+            while (ch != '@') {
+              _at.read_bytes(&ch, 1);
+            }
+            _at.write_bytes((uint8_t *)buf, blk);
+
+            _at.resp_start("+USOWR:");
+            _at.skip_param(); // skip socket id
+            sent_len = _at.read_int();
+            _at.resp_stop();
+
+            if ((sent_len >= (int) blk) &&
+            	(_at.get_last_error() == NSAPI_ERROR_OK)) {
+            } else {
+            	success = false;
+            }
+
+            buf += blk;
+            count -= blk;
         }
-        _at.write_bytes((uint8_t *)data, size);
-        
-        _at.resp_start("+USOWR:");
-        _at.skip_param(); // skip socket id
-        sent_len = _at.read_int();
-        _at.resp_stop();
     }
     _at.unlock();
 
-    if (_at.get_last_error() == NSAPI_ERROR_OK) {
-        return sent_len;
+    if (success && _at.get_last_error() == NSAPI_ERROR_OK) {
+        socket->rx_avail = false;
+        return size - count;
     }
 
     return _at.get_last_error();
@@ -309,49 +328,170 @@ nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_sendto_impl(CellularSocket 
 nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_recvfrom_impl(CellularSocket *socket, SocketAddress *address,
         void *buffer, nsapi_size_t size)
 {
+    nsapi_size_or_error_t nsapi_error_size = NSAPI_ERROR_DEVICE_ERROR;
+    char *buf = (char *) buffer;
+    bool success = true;
+    nsapi_size_t read_blk;
+    nsapi_size_t count = 0;
+    nsapi_size_t usorf_sz;
     char ipAddress[NSAPI_IP_SIZE];
-    nsapi_size_or_error_t recv_len=0;
-    int port;
+    uint8_t ch = 0;
+    int port = 0;
+    Timer timer;
 
     _at.lock();
+    timer.start();
     if (socket->proto == NSAPI_UDP) {
-        _at.cmd_start("AT+USORF=");
-        _at.write_int(socket->id);
-        _at.write_int(size);
-        _at.cmd_stop();
+        while (success && (size > 0)) {
+            read_blk = UBLOX_MAX_PACKET_SIZE;
+            if (read_blk > size) {
+            	read_blk = size;
+            }
+            if (pendingBytes > 0) {
+                _at.cmd_start("AT+USORF=");
+                _at.write_int(socket->id);
+                _at.write_int(read_blk);
+                _at.cmd_stop();
+                
+                _at.resp_start("+USORF:");
+                _at.skip_param(); // receiving socket id
+                _at.read_string(ipAddress, sizeof(ipAddress));
+                port = _at.read_int();
+                usorf_sz = _at.read_int();
 
-        _at.resp_start("+USORF:");
-        _at.skip_param(); // receiving socket id
-        _at.read_string(ipAddress, sizeof(ipAddress));
-        port = _at.read_int();
-        recv_len = _at.read_int();
-        _at.read_string((char*)buffer, size);
-        _at.resp_stop();
+                // Must use what +USORF returns here as it may be less or more than we asked for
+                if (usorf_sz > pendingBytes) {
+                    pendingBytes = 0;
+                } else {
+                    pendingBytes -= usorf_sz;
+                }
+                
+                if (usorf_sz > size) {
+                    usorf_sz = size;
+                }
+                _at.read_string(buf, usorf_sz);
+                _at.resp_stop();
+
+                if (usorf_sz > 0) {
+                    count += usorf_sz;
+                    buf += usorf_sz;
+                    size -= usorf_sz;
+                } else {
+                    // read() should not fail
+                    success = false;
+                }
+            }  else if (timer.read_ms() < SOCKET_TIMEOUT) {
+                // Wait for URCs
+                _at.process_oob();
+            } else {
+                if (count == 0) {
+                    // Timeout with nothing received
+                    nsapi_error_size = NSAPI_ERROR_WOULD_BLOCK;
+                    success = false;
+                }
+                size = 0; // This simply to cause an exit
+            }
+        }
     } else if (socket->proto == NSAPI_TCP) {
-        _at.cmd_start("AT+USORD=");
-        _at.write_int(socket->id);
-        _at.write_int(size);
-        _at.cmd_stop();
-        
-        _at.resp_start("+USORD:");
-        _at.skip_param(); // receiving socket id
-        recv_len = _at.read_int();
-        _at.read_bytes((uint8_t *)buffer, size);
-        _at.resp_stop();
+        while (success && (size > 0)) {
+            read_blk = UBLOX_MAX_PACKET_SIZE;
+            if (read_blk > size) {
+            	read_blk = size;
+            }
+            if (pendingBytes > 0) {
+                _at.cmd_start("AT+USORD=");
+                _at.write_int(socket->id);
+                _at.write_int(read_blk);
+                _at.cmd_stop();
+                
+                _at.resp_start("+USORD:");
+                _at.skip_param(); // receiving socket id
+                usorf_sz = _at.read_int();
+                
+                // Must use what +USORD returns here as it may be less or more than we asked for
+                if (usorf_sz > pendingBytes) {
+                    pendingBytes = 0;
+                } else {
+                    pendingBytes -= usorf_sz;
+                }
+                
+                if (usorf_sz > size) {
+                    usorf_sz = size;
+                }
+                _at.read_bytes(&ch, 1);
+                _at.read_bytes((uint8_t *)buf, usorf_sz);
+                _at.resp_stop();
+                
+                if (usorf_sz > 0) {
+                    count += usorf_sz;
+                    buf += usorf_sz;
+                    size -= usorf_sz;
+                } else {
+                    success = false;
+                }
+            } else if (timer.read_ms() < SOCKET_TIMEOUT) {
+                // Wait for URCs
+                _at.process_oob();
+            } else {
+                if (count == 0) {
+                    // Timeout with nothing received
+                    nsapi_error_size = NSAPI_ERROR_WOULD_BLOCK;
+                    success = false;
+                }
+                size = 0; // This simply to cause an exit
+            }
+        }
     }
+    timer.stop();
     _at.unlock();
 
 
-    if (!recv_len || (recv_len == -1) || (_at.get_last_error() != NSAPI_ERROR_OK)) {
+    if (!count || (_at.get_last_error() != NSAPI_ERROR_OK)) {
         return NSAPI_ERROR_WOULD_BLOCK;
+    } else {
+        nsapi_error_size = count;
     }
 
-    if (socket->proto == NSAPI_UDP && address) {
+    if (success && socket->proto == NSAPI_UDP && address) {
         address->set_ip_address(ipAddress);
         address->set_port(port);
     }
 
-    return recv_len;
+    return nsapi_error_size;
+}
+
+nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_sendto(nsapi_socket_t handle, const SocketAddress &addr, const void *data, unsigned size)
+{
+    CellularSocket *socket = (CellularSocket *)handle;
+    if (!socket) {
+        return NSAPI_ERROR_DEVICE_ERROR;
+    }
+
+    nsapi_size_or_error_t ret_val = NSAPI_ERROR_OK;
+
+    if (!socket->created) {
+        _at.lock();
+
+        ret_val = create_socket_impl(socket);
+
+        _at.unlock();
+        if (ret_val != NSAPI_ERROR_OK) {
+            return ret_val;
+        }
+    }
+
+    /* Check parameters */
+    if (addr.get_ip_version() == NSAPI_UNSPEC) {
+        return NSAPI_ERROR_DEVICE_ERROR;
+    }
+
+    _at.lock();
+
+    ret_val = socket_sendto_impl(socket, addr, data, size);
+
+    _at.unlock();
+
+    return ret_val;
 }
 
 nsapi_error_t UBLOX_AT_CellularStack::socket_close_impl(int sock_id)
@@ -388,6 +528,7 @@ void UBLOX_AT_CellularStack::clear_socket(CellularSocket * socket)
         socket->rx_avail = 0;
         socket->_cb      = NULL;
         socket->_data    = NULL;
+        socket->created  = false;
     }
 }
 

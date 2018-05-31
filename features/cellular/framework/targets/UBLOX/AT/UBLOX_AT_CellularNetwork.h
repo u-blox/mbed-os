@@ -34,7 +34,7 @@ public:
 protected:
     virtual NetworkStack *get_stack();
 
-    virtual nsapi_error_t set_access_technology_impl(operator_t::RadioAccessTechnology opRat);
+    virtual nsapi_error_t set_access_technology_impl(RadioAccessTechnology opRat);
 
     virtual bool get_modem_stack_type(nsapi_ip_stack_t requested_stack);
 
