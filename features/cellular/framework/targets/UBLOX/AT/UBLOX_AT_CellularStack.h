@@ -19,11 +19,9 @@
 
 #include "AT_CellularStack.h"
 #include "CellularUtil.h"
+#include "mbed_wait_api.h"
+#include "drivers/Timer.h"
 
-//TO DO add target based
-#define UBLOX_U201_SOCKET_MAX 7
-#define UBLOX_U201_AT_COMMAND_BUFFER_SIZE 256
-#define UBLOX_U201_MAX_PACKET_SIZE 1024
 
 namespace mbed {
 
@@ -53,6 +51,22 @@ protected: // AT_CellularStack
     /** The profile to use (on board the modem).
      */
     #define PROFILE "0"
+	
+    /** Socket timeout value in milliseconds.
+     * Note: the sockets layer above will retry the
+     * call to the functions here when they return NSAPI_ERROR_WOULD_BLOCK
+     * and the user has set a larger timeout or full blocking.
+     */
+    #define SOCKET_TIMEOUT 5000
+	
+    /** Maximum allowed sockets.
+     */
+    #define UBLOX_MAX_SOCKET 7
+	
+    /** The maximum number of bytes in a packet that can be write/read from
+     * the AT interface in one go.
+     */
+    #define UBLOX_MAX_PACKET_SIZE 1024
 
     virtual int get_max_socket_count();
 
@@ -71,6 +85,9 @@ protected: // AT_CellularStack
 
     virtual nsapi_size_or_error_t socket_recvfrom_impl(CellularSocket *socket, SocketAddress *address,
             void *buffer, nsapi_size_t size);
+
+    virtual nsapi_size_or_error_t socket_sendto(nsapi_socket_t handle, const SocketAddress &address,
+            const void *data, nsapi_size_t size);
 			
     virtual nsapi_error_t socket_close_impl(int sock_id);
 
@@ -94,6 +111,10 @@ private:
      * @return         None
      */
     void clear_socket(CellularSocket * socket);
+	
+    /** Number of pending received bytes.
+     */
+    volatile unsigned int pendingBytes;
 };
 } // namespace mbed
 #endif /* UBLOX_AT_CELLULARSTACK_H_ */
