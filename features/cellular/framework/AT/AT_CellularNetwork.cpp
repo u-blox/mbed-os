@@ -83,15 +83,15 @@ nsapi_error_t AT_CellularNetwork::init()
 
 void AT_CellularNetwork::free_credentials()
 {
-    if (_uname) {
+    if (*_uname) {
         free(_uname);
     }
 
-    if (_pwd) {
+    if (*_pwd) {
         free(_pwd);
     }
 
-    if (_apn) {
+    if (*_apn) {
         free(_apn);
     }
 }
