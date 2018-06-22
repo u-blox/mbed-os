@@ -27,8 +27,6 @@ UBLOX_AT_CellularStack::UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, ns
     _at.set_urc_handler("+UUSORF:", callback(this, &UBLOX_AT_CellularStack::UUSORF_URC));
     _at.set_urc_handler("+UUSOCL:", callback(this, &UBLOX_AT_CellularStack::UUSOCL_URC));
     _at.set_urc_handler("+UUPSDD:", callback(this, &UBLOX_AT_CellularStack::UUPSDD_URC));
-	
-    pendingBytes = 0;
 }
 
 UBLOX_AT_CellularStack::~UBLOX_AT_CellularStack()
@@ -57,7 +55,7 @@ void UBLOX_AT_CellularStack::UUSORD_URC()
     socket = find_socket(a);
     if (socket != NULL) {
         socket->rx_avail = true;
-        pendingBytes = b;
+        socket->pending_bytes = b;
         // No debug prints here as they can affect timing
         // and cause data loss in UARTSerial
         if (socket->_cb != NULL) {
@@ -78,7 +76,7 @@ void UBLOX_AT_CellularStack::UUSORF_URC()
     socket = find_socket(a);
     if (socket != NULL) {
         socket->rx_avail = true;
-        pendingBytes = b;
+        socket->pending_bytes = b;
         // No debug prints here as they can affect timing
         // and cause data loss in UARTSerial
         if (socket->_cb != NULL) {
@@ -347,7 +345,7 @@ nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_recvfrom_impl(CellularSocke
             if (read_blk > size) {
             	read_blk = size;
             }
-            if (pendingBytes > 0) {
+            if (socket->pending_bytes > 0) {
                 _at.cmd_start("AT+USORF=");
                 _at.write_int(socket->id);
                 _at.write_int(read_blk);
@@ -360,10 +358,10 @@ nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_recvfrom_impl(CellularSocke
                 usorf_sz = _at.read_int();
 
                 // Must use what +USORF returns here as it may be less or more than we asked for
-                if (usorf_sz > pendingBytes) {
-                    pendingBytes = 0;
+                if (usorf_sz > socket->pending_bytes) {
+                    socket->pending_bytes = 0;
                 } else {
-                    pendingBytes -= usorf_sz;
+                    socket->pending_bytes -= usorf_sz;
                 }
                 
                 if (usorf_sz > size) {
@@ -398,7 +396,7 @@ nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_recvfrom_impl(CellularSocke
             if (read_blk > size) {
             	read_blk = size;
             }
-            if (pendingBytes > 0) {
+            if (socket->pending_bytes > 0) {
                 _at.cmd_start("AT+USORD=");
                 _at.write_int(socket->id);
                 _at.write_int(read_blk);
@@ -409,10 +407,10 @@ nsapi_size_or_error_t UBLOX_AT_CellularStack::socket_recvfrom_impl(CellularSocke
                 usorf_sz = _at.read_int();
                 
                 // Must use what +USORD returns here as it may be less or more than we asked for
-                if (usorf_sz > pendingBytes) {
-                    pendingBytes = 0;
+                if (usorf_sz > socket->pending_bytes) {
+                    socket->pending_bytes = 0;
                 } else {
-                    pendingBytes -= usorf_sz;
+                    socket->pending_bytes -= usorf_sz;
                 }
                 
                 if (usorf_sz > size) {
@@ -510,7 +508,7 @@ UBLOX_AT_CellularStack::CellularSocket * UBLOX_AT_CellularStack::find_socket(int
 {
     CellularSocket *socket = NULL;
 
-    for (unsigned int x = 0; (socket == NULL) && (x < sizeof(_socket) / sizeof(_socket[0])); x++) {
+    for (unsigned int x = 0; (socket == NULL) && (x < UBLOX_MAX_SOCKET); x++) {
         if (_socket[x]->id == id) {
             socket = (_socket[x]);
         }
