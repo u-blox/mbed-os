@@ -57,20 +57,32 @@ bool UBLOX_AT_CellularNetwork::has_registration(RegistrationType reg_type)
 nsapi_error_t UBLOX_AT_CellularNetwork::set_access_technology_impl(RadioAccessTechnology opRat)
 {
     switch(opRat) {
-    case RAT_UTRAN:
-    case RAT_EGPRS:
-    case RAT_E_UTRAN:
-    case RAT_CATM1:
-    case RAT_NB1: {
-    	// Do nothing
-    }
-    break;
-    default: {
-        //TODO: Set as unknown or force to NB1?
-        _op_act = RAT_UNKNOWN;
-        return NSAPI_ERROR_UNSUPPORTED;
-    }
-    break;
+#if defined(TARGET_UBLOX_C030_U201) || defined(TARGET_UBLOX_C027)
+        case RAT_GSM:
+        case RAT_GSM_COMPACT:
+            break;
+        case RAT_EGPRS:
+            break;
+#elif defined(TARGET_UBLOX_C030_U201)
+        case RAT_UTRAN:
+            break;
+        case RAT_HSDPA:
+            break;
+        case RAT_HSUPA:
+            break;
+        case RAT_HSDPA_HSUPA:
+            break;
+#elif defined(TARGET_UBLOX_C030_R410M)
+        case RAT_CATM1:
+            break;
+#elif defined(TARGET_UBLOX_C030_R410M) || defined(TARGET_UBLOX_C030_N211)
+        case RAT_NB1:
+            break;
+#endif
+        default: {
+            _op_act = RAT_UNKNOWN;
+            return NSAPI_ERROR_UNSUPPORTED;
+        }
     }
 
     return NSAPI_ERROR_OK;
@@ -80,8 +92,13 @@ nsapi_error_t UBLOX_AT_CellularNetwork::connect()
 {
     _at.lock();
     nsapi_error_t err = NSAPI_ERROR_NO_CONNECTION;
-
+	
+    // Attempt to establish a connection
+#ifdef TARGET_UBLOX_C030_R410M
+    err = NSAPI_ERROR_OK;
+#else
     err = open_data_channel();
+#endif
     if (err != NSAPI_ERROR_OK) {
         // If new PSD context was created and failed to activate, delete it
         if (_new_context_set) {
@@ -302,8 +319,4 @@ void UBLOX_AT_CellularNetwork::get_next_credentials(char ** config)
         _uname  = _APN_GET(*config);
         _pwd    = _APN_GET(*config);
     }
-
-    _apn    = (char*)(_apn     ?  _apn    : "");
-    _uname  = (char*)(_uname   ?  _uname  : "");
-    _pwd    = (char*)(_pwd     ?  _pwd    : "");
 }

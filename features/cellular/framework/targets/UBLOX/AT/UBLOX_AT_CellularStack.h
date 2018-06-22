@@ -111,10 +111,6 @@ private:
      * @return         None
      */
     void clear_socket(CellularSocket * socket);
-	
-    /** Number of pending received bytes.
-     */
-    volatile unsigned int pendingBytes;
 };
 } // namespace mbed
 #endif /* UBLOX_AT_CELLULARSTACK_H_ */
