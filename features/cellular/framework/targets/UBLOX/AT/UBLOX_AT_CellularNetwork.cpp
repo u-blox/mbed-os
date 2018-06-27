@@ -22,7 +22,7 @@ using namespace mbed;
 
 UBLOX_AT_CellularNetwork::UBLOX_AT_CellularNetwork(ATHandler &atHandler) : AT_CellularNetwork(atHandler)
 {
-    _op_act = RAT_UTRAN;
+    _op_act = RAT_UNKNOWN;
     // The authentication to use
     _auth = NSAPI_SECURITY_UNKNOWN;
 }
@@ -319,4 +319,9 @@ void UBLOX_AT_CellularNetwork::get_next_credentials(char ** config)
         _uname  = _APN_GET(*config);
         _pwd    = _APN_GET(*config);
     }
+}
+
+const char *UBLOX_AT_CellularNetwork::get_gateway()
+{
+    return get_ip_address();
 }

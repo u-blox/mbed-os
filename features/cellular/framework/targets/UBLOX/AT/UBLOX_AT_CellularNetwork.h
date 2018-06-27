@@ -30,6 +30,8 @@ public:
     virtual ~UBLOX_AT_CellularNetwork();
 
     virtual nsapi_error_t connect();
+	
+    virtual const char *get_gateway();
 
 protected:
     virtual NetworkStack *get_stack();

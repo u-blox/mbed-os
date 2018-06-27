@@ -28,7 +28,7 @@ UBLOX_AT_CellularPower::UBLOX_AT_CellularPower(ATHandler &atHandler) : AT_Cellul
 
 UBLOX_AT_CellularPower::~UBLOX_AT_CellularPower()
 {
-
+    off();
 }
 
 nsapi_error_t UBLOX_AT_CellularPower::on()
