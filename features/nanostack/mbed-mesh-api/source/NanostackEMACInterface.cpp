@@ -194,7 +194,7 @@ nsapi_error_t Nanostack::add_ethernet_interface(EMAC &emac, bool default_if, Nan
 
     Nanostack::EthernetInterface *interface;
 
-    interface = new (nothrow) Nanostack::EthernetInterface(*single_phy);
+    //interface = new (nothrow) Nanostack::EthernetInterface(*single_phy);
     if (!interface) {
         return NSAPI_ERROR_NO_MEMORY;
     }

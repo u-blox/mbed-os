@@ -167,13 +167,6 @@ public:
      */
     void ref(emac_mem_buf_t *buf);
 
-    /**
-     * Increases the reference count on the provided buffer
-     *
-     * @param buf      Memory buffer
-     */
-    void ref(emac_mem_buf_t *buf);
-
 private:
 
     /**
