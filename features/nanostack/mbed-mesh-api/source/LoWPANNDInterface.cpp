@@ -30,7 +30,7 @@ private:
 int LoWPANNDInterface::connect()
 {
     if (!_interface) {
-        //_interface = new (nothrow) Nanostack::LoWPANNDInterface(*_phy);
+        _interface = new (nothrow) Nanostack::LoWPANNDInterface(*_phy);
         if (!_interface) {
             return NSAPI_ERROR_NO_MEMORY;
         }
