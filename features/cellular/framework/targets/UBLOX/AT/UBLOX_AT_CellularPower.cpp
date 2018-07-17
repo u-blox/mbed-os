@@ -28,7 +28,7 @@ UBLOX_AT_CellularPower::UBLOX_AT_CellularPower(ATHandler &atHandler) : AT_Cellul
 
 UBLOX_AT_CellularPower::~UBLOX_AT_CellularPower()
 {
-    off();
+   
 }
 
 nsapi_error_t UBLOX_AT_CellularPower::on()
@@ -46,4 +46,27 @@ nsapi_error_t UBLOX_AT_CellularPower::off()
     ::onboard_modem_power_down();
 #endif
     return NSAPI_ERROR_OK;
+}
+
+nsapi_error_t UBLOX_AT_CellularPower::set_idle_mode(int idle_mode_value)
+{
+    _at.lock();
+    _at.cmd_start("AT+UPSV=");
+    _at.write_int(idle_mode_value); //0,4 for R410.
+    _at.cmd_stop();
+    _at.resp_start();
+    _at.resp_stop();
+
+    if (_at.get_last_error() == NSAPI_ERROR_OK) {
+        if (idle_mode_value != 0) {
+        	_at._idle_mode_status = true;
+        }
+        else {
+        	_at._idle_mode_status = false;
+        }
+
+        _at.unlock();
+        return NSAPI_ERROR_OK;
+    }
+    return _at.unlock_return_error(); //what if last error changes as mutex is released
 }

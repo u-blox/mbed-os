@@ -14,29 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef UBLOX_ATHANDLER_H_
+#define UBLOX_ATHANDLER_H_
 
-#ifndef UBLOX_AT_H_
-#define UBLOX_AT_H_
-
-#include "UBLOX_AT_CellularDevice.h"
+#include "ATHandler.h"
 
 namespace mbed {
 
-class UBLOX_AT : public UBLOX_AT_CellularDevice
+/**
+ *  Class UBLOX_ATHandler 
+ *
+ */
+class UBLOX_ATHandler : public ATHandler
 {
-
 public:
-	UBLOX_AT(events::EventQueue &queue);
-    virtual ~UBLOX_AT();
+    UBLOX_ATHandler(FileHandle *fh, events::EventQueue &queue, int timeout, const char *output_delimiter, uint16_t send_delay = 0);
 
-public: // CellularDevice
-    virtual CellularNetwork *open_network(FileHandle *fh);
-    virtual CellularPower *open_power(FileHandle *fh);
+    /** Starts the command writing by clearing the last error and writing the given command.
+     *  In case of failure when writing, the last error is set to NSAPI_ERROR_DEVICE_ERROR.
+     *
+     *  @param cmd  AT command to be written to modem
+     */
+    virtual void cmd_start(const char *cmd);
 
-public: // NetworkInterface
-    void handle_urc(FileHandle *fh);
+    bool _idle_mode_status = false;
 };
+
 
 } // namespace mbed
 
-#endif // UBLOX_AT_H_
+#endif /* AT_CELLULAR_BASE_H_ */

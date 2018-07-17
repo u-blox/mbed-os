@@ -22,7 +22,7 @@
 using namespace mbed;
 using namespace events;
 
-UBLOX_AT::UBLOX_AT(EventQueue &queue) : AT_CellularDevice(queue)
+UBLOX_AT::UBLOX_AT(EventQueue &queue) : UBLOX_AT_CellularDevice(queue)
 {
 }
 

@@ -33,6 +33,8 @@ public: //from CellularPower
     virtual nsapi_error_t on();
 
     virtual nsapi_error_t off();
+
+    nsapi_error_t set_idle_mode(int idle_mode_value=0);
 };
 
 } // namespace mbed
