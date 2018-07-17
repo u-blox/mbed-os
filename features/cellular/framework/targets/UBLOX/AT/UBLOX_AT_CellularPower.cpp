@@ -28,7 +28,7 @@ UBLOX_AT_CellularPower::UBLOX_AT_CellularPower(ATHandler &atHandler) : AT_Cellul
 
 UBLOX_AT_CellularPower::~UBLOX_AT_CellularPower()
 {
-   
+
 }
 
 nsapi_error_t UBLOX_AT_CellularPower::on()
@@ -59,10 +59,10 @@ nsapi_error_t UBLOX_AT_CellularPower::set_idle_mode(int idle_mode_value)
 
     if (_at.get_last_error() == NSAPI_ERROR_OK) {
         if (idle_mode_value != 0) {
-        	//_at._idle_mode_status = true;
+            //_at._idle_mode_status = true;
         }
         else {
-        	//_at._idle_mode_status = false;
+            //_at._idle_mode_status = false;
         }
 
         _at.unlock();

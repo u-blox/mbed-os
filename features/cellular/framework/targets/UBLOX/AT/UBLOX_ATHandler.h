@@ -22,7 +22,7 @@
 namespace mbed {
 
 /**
- *  Class UBLOX_ATHandler 
+ *  Class UBLOX_ATHandler
  *
  */
 class UBLOX_ATHandler : public ATHandler

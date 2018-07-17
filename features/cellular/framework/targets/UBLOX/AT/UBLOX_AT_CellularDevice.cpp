@@ -64,7 +64,7 @@ void UBLOX_AT_CellularDevice::release_at_handler(ATHandler *at_handler)
         while (atHandler) {
             if (atHandler == at_handler) {
                 if (prev == NULL) {
-                	_atHandlers = (_atHandlers->_nextATHandler);
+                    _atHandlers = (_atHandlers->_nextATHandler);
                 } else {
                     prev->_nextATHandler = atHandler->_nextATHandler;
                 }

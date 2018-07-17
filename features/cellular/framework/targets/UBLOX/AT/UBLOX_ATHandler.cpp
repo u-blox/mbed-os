@@ -38,11 +38,11 @@ void UBLOX_ATHandler::cmd_start(const char *cmd)
             ATHandler::resp_stop();
             if (ATHandler::get_last_error() == NSAPI_ERROR_OK)
             {
-                break;              
+                break;
             }
             else
             {
-                rtos::Thread::wait_until(50);  
+                rtos::Thread::wait_until(50);
             }
         }
     //}
