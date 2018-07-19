@@ -24,28 +24,51 @@ UBLOX_ATHandler::UBLOX_ATHandler(FileHandle *fh, events::EventQueue &queue, int 
 {
 
 }
+UBLOX_ATHandler::~UBLOX_ATHandler()
+{
+
+}
+
 
 void UBLOX_ATHandler::cmd_start(const char *cmd)
 {
-    uint8_t time_out=20; //wait a maximum of 1 second? //do we need a lock?
+    uint8_t time_out=5; //wait a maximum of 250ms
 
-    //if (_idle_mode_status == false) { //idle mode is active: IMPORTANT: this method cannot work as UPSV settings are retained after power reset.
-        while(true && time_out--)
+    if (_idle_mode_status == true) { //idle mode is active
+        if ( _wakeup_timer.read_ms() > 5000) //if more than 5 secs have passed since last TX activity, wake up the modem.
         {
-            ATHandler::cmd_start("AT");
-            ATHandler::cmd_stop();
-            ATHandler::resp_start();
-            ATHandler::resp_stop();
-            if (ATHandler::get_last_error() == NSAPI_ERROR_OK)
+            while(time_out--)
             {
-                break;
-            }
-            else
-            {
-                rtos::Thread::wait_until(50);
+                ATHandler::cmd_start("A");
+                ATHandler::cmd_stop();
+                rtos::Thread::wait_until(1); //works without this line as well but i am keeping it for now
+                ATHandler::cmd_start("AT");
+                ATHandler::cmd_stop();
+                ATHandler::resp_start();
+                ATHandler::resp_stop();
+                if (ATHandler::get_last_error() == NSAPI_ERROR_OK)
+                {
+                    break;
+                }
+                else
+                {
+                    rtos::Thread::wait_until(50);
+                }
             }
         }
-    //}
+        _wakeup_timer.reset(); //Any activity on tx will reset the timer. Timer will expire if no activity since last 5 secs
+    }
     ATHandler::cmd_start(cmd);
 }
 
+void UBLOX_ATHandler::idle_mode_enabled()
+{
+    _idle_mode_status = true;
+    _wakeup_timer.start();
+}
+
+void UBLOX_ATHandler::idle_mode_disabled()
+{
+    _idle_mode_status = false;
+    _wakeup_timer.stop();
+}

@@ -30,7 +30,7 @@
 #include "CellularPower.h"
 #include "CellularSIM.h"
 #include "CellularUtil.h"
-
+#include "UBLOX_AT_CellularPower.h"
 // modem type is defined as CELLULAR_DEVICE macro
 #include CELLULAR_STRINGIFY(CELLULAR_DEVICE.h)
 

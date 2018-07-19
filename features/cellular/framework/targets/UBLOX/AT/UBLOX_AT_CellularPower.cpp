@@ -16,7 +16,7 @@
  */
 
 #include "UBLOX_AT_CellularPower.h"
-
+#include "UBLOX_ATHandler.h"
 #include "onboard_modem_api.h"
 
 using namespace mbed;
@@ -50,23 +50,24 @@ nsapi_error_t UBLOX_AT_CellularPower::off()
 
 nsapi_error_t UBLOX_AT_CellularPower::set_idle_mode(int idle_mode_value)
 {
-    _at.lock();
-    _at.cmd_start("AT+UPSV=");
-    _at.write_int(idle_mode_value); //0,4 for R410.
-    _at.cmd_stop();
-    _at.resp_start();
-    _at.resp_stop();
+    UBLOX_ATHandler * ubx_at = (UBLOX_ATHandler *)&_at;
 
-    if (_at.get_last_error() == NSAPI_ERROR_OK) {
+    ubx_at->lock();
+    ubx_at->cmd_start("AT+UPSV=");
+    ubx_at->write_int(idle_mode_value); //0,4 for R410.
+    ubx_at->cmd_stop();
+    ubx_at->resp_start();
+    ubx_at->resp_stop();
+
+    if (ubx_at->get_last_error() == NSAPI_ERROR_OK) {
         if (idle_mode_value != 0) {
-            //_at._idle_mode_status = true;
+            ubx_at->idle_mode_enabled();
         }
         else {
-            //_at._idle_mode_status = false;
+            ubx_at->idle_mode_disabled();
         }
-
-        _at.unlock();
+        ubx_at->unlock();
         return NSAPI_ERROR_OK;
     }
-    return _at.unlock_return_error();
+    return ubx_at->unlock_return_error();
 }

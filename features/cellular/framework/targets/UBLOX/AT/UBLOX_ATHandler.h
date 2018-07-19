@@ -18,6 +18,7 @@
 #define UBLOX_ATHANDLER_H_
 
 #include "ATHandler.h"
+#include "mbed.h"
 
 namespace mbed {
 
@@ -29,6 +30,7 @@ class UBLOX_ATHandler : public ATHandler
 {
 public:
     UBLOX_ATHandler(FileHandle *fh, events::EventQueue &queue, int timeout, const char *output_delimiter, uint16_t send_delay = 0);
+    virtual ~UBLOX_ATHandler();
 
     /** Starts the command writing by clearing the last error and writing the given command.
      *  In case of failure when writing, the last error is set to NSAPI_ERROR_DEVICE_ERROR.
@@ -37,7 +39,13 @@ public:
      */
     virtual void cmd_start(const char *cmd);
 
+    void idle_mode_enabled();
+
+    void idle_mode_disabled();
+
+private:
     bool _idle_mode_status = false;
+    Timer _wakeup_timer;
 };
 
 
