@@ -110,16 +110,19 @@ public:
          */
         virtual char *get_gateway(char *buf, nsapi_size_t buflen);
 
+#if MBED_EMAC_LWIP_L2_BRIDGE
         void set_broadcast_to_self(bool enabled);
         bool get_broadcast_to_self(void);
+#endif
 
     private:
         friend LWIP;
+#if MBED_EMAC_LWIP_L2_BRIDGE
         friend err_t output_from_netif_to_netifs(struct netif *net, emac_mem_buf_t *buf);
         friend err_t output_from_local_to_netifs(emac_mem_buf_t *buf);
         friend err_t emac_lwip_l2b_output(struct netif *netif, emac_mem_buf_t *buf);
         friend err_t emac_lwip_l2b_input(struct netif *net, emac_mem_buf_t *buf);
-
+#endif
         Interface();
 
         nsapi_error_t set_dhcp();

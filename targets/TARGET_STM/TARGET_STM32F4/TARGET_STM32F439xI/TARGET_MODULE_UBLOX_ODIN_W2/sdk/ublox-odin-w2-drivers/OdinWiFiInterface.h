@@ -266,7 +266,11 @@ private:
         const char          *passwd;
         nsapi_security_t    security;
         uint8_t             channel;
+        bool                use_dhcp;
         int                 timeout_ms;
+        char                ip_address[IPADDR_STRLEN_MAX];
+        char                netmask[IPADDR_STRLEN_MAX];
+        char                gateway[IPADDR_STRLEN_MAX];
     };
 
     struct ap_s {

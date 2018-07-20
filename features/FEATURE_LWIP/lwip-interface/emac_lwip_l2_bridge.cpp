@@ -21,6 +21,8 @@
 #include "LWIPMemoryManager.h"
 #include "LWIPStack.h"
 
+#if MBED_EMAC_LWIP_L2_BRIDGE
+
 extern "C" {
 #include "sys.h"
 }
@@ -408,3 +410,4 @@ err_t emac_lwip_l2b_input(struct netif *net, emac_mem_buf_t *buf)
 
     return res;
 }
+#endif
