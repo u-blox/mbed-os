@@ -42,7 +42,8 @@ public:
 
     int8_t get_interface_id() const { return interface_id; }
     int8_t get_driver_id() const { return _device_id; }
-
+    void set_broadcast_to_self(bool enabled);
+    bool get_broadcast_to_self(void);
 private:
     NanostackPhy &interface_phy;
 protected:
