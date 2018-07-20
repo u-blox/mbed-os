@@ -74,6 +74,13 @@ Nanostack::Interface::Interface(NanostackPhy &phy) : interface_phy(phy), interfa
     mesh_system_init();
 }
 
+void Nanostack::Interface::set_broadcast_to_self(bool enabled){
+    return;
+}
+bool Nanostack::Interface::get_broadcast_to_self(void){
+    bool var;
+    return var;
+}
 
 InterfaceNanostack::InterfaceNanostack()
     : _interface(NULL),

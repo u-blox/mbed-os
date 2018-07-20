@@ -119,6 +119,9 @@ public:
          * @return              Pointer to a buffer, or NULL if the buffer is too small
          */
         virtual char *get_gateway(char *buf, nsapi_size_t buflen) = 0;
+
+        virtual void set_broadcast_to_self(bool enabled) = 0;
+        virtual bool get_broadcast_to_self(void) = 0;
     };
 
     /** Register a network interface with the IP stack
