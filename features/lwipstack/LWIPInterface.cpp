@@ -635,6 +635,7 @@ nsapi_error_t LWIP::Interface::bringdown()
     return 0;
 }
 
+#if MBED_EMAC_LWIP_L2_BRIDGE
 void LWIP::Interface::set_broadcast_to_self(bool enabled)
 {
     _broadcast_to_self = enabled;
@@ -644,4 +645,4 @@ bool LWIP::Interface::get_broadcast_to_self(void)
 {
     return _broadcast_to_self;
 }
-
+#endif

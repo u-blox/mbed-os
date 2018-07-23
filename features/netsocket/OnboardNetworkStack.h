@@ -120,8 +120,10 @@ public:
          */
         virtual char *get_gateway(char *buf, nsapi_size_t buflen) = 0;
 
+#if MBED_EMAC_LWIP_L2_BRIDGE
         virtual void set_broadcast_to_self(bool enabled) = 0;
         virtual bool get_broadcast_to_self(void) = 0;
+#endif
     };
 
     /** Register a network interface with the IP stack

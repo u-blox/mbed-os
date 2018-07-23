@@ -42,8 +42,12 @@ public:
 
     int8_t get_interface_id() const { return interface_id; }
     int8_t get_driver_id() const { return _device_id; }
+
+#if MBED_EMAC_LWIP_L2_BRIDGE
     void set_broadcast_to_self(bool enabled);
     bool get_broadcast_to_self(void);
+#endif
+
 private:
     NanostackPhy &interface_phy;
 protected:

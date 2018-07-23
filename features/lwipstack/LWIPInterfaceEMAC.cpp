@@ -39,7 +39,6 @@ err_t LWIP::Interface::emac_low_level_output(struct netif *netif, struct pbuf *p
 #if MBED_EMAC_LWIP_L2_BRIDGE
     return emac_lwip_l2b_output(netif, (emac_mem_buf_t*) p);
 #else
-
     LWIP::Interface *mbed_if = static_cast<LWIP::Interface *>(netif->state);
     bool ret = mbed_if->emac->link_out(p);
     return ret ? ERR_OK : ERR_IF;
@@ -56,7 +55,6 @@ void LWIP::Interface::emac_input(emac_mem_buf_t *buf)
     /* pass all packets to ethernet_input, which decides what packets it supports */
     if (netif.input(p, &netif) != ERR_OK) {
         LWIP_DEBUGF(NETIF_DEBUG, ("Emac LWIP: IP input error\n"));
-
         pbuf_free(p);
     }
 #endif
