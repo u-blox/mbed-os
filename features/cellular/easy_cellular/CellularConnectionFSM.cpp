@@ -410,6 +410,7 @@ void CellularConnectionFSM::state_device_ready()
 {
     _cellularDevice->set_timeout(TIMEOUT_POWER_ON);
     if (_power->set_at_mode() == NSAPI_ERROR_OK) {
+        ((UBLOX_AT_CellularPower *)_power)->set_idle_mode(4); //FIXME: This is for testing only, will be removed later on. We can send 0 here so that idle mode is disabled at each start
         device_ready();
         enter_to_state(STATE_SIM_PIN);
     } else {

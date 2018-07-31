@@ -137,6 +137,14 @@ public:
      *  @param plmn operator in numeric format. See more from 3GPP TS 27.007 chapter 7.3.
      */
     void set_plmn(const char* plmn);
+
+    /** Get sim instance to be used by the application to modify and access the SIM parameters like PIN udring run time
+     *
+     *  @param void
+     *  @return CellularSim instance
+     */
+    CellularSIM *get_sim_instance(void);
+
 protected:
 
     /** Provide access to the NetworkStack object

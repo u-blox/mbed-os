@@ -327,6 +327,14 @@ void EasyCellularConnection::set_plmn(const char *plmn)
     }
 }
 
+CellularSIM *EasyCellularConnection::get_sim_instance() {
+    if (_cellularConnectionFSM) {
+        return _cellularConnectionFSM->get_sim();
+    } else {
+        return NULL;
+    }
+}
+
 NetworkStack *EasyCellularConnection::get_stack()
 {
     if (_cellularConnectionFSM) {
