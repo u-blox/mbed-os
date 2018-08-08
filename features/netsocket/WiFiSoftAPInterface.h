@@ -80,7 +80,7 @@ public:
      *  @param ssid      Name of the network to connect to
      *  @param pass      Security passphrase to connect to the network
      *  @param security  Type of encryption for connection (Default: NSAPI_SECURITY_NONE)
-     *  @param channel   Channel on which the connection is to be made, or 0 for any (Default: 0)
+     *  @param channel   Channel on which the connection is to be made.
      *  @return          0 on success, or error code on failure
      */
     virtual nsapi_error_t ap_start(const char *ssid, const char *pass = 0,
