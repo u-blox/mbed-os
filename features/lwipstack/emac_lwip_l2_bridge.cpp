@@ -16,8 +16,8 @@
 
 #include "emac_lwip_l2_bridge.h"
 #include "string.h"
-#include "mbed.h"
 #include "mbed_assert.h"
+#include "mbed_wait_api.h"
 #include "LWIPMemoryManager.h"
 #include "LWIPStack.h"
 
