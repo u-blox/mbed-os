@@ -108,9 +108,6 @@ public:
      */
     virtual nsapi_error_t disconnect();
 
-
-
-    
     /** Gets the current radio signal strength for active connection
      *
      *  @return         Connection strength in dBm (negative value),
@@ -166,7 +163,7 @@ public:
 
     /** Set the WiFi network channel
      *
-     *  @param channel   Channel on which the connection is to be made, or 0 for any (Default: 0)
+     *  @param channel   Channel on which the connection is to be made.
      *  @return          0 on success, or error code on failure
      */
     virtual nsapi_error_t set_ap_channel(uint8_t channel);
@@ -210,7 +207,7 @@ public:
      *  @param ssid      Name of the network to connect to
      *  @param pass      Security passphrase to connect to the network
      *  @param security  Type of encryption for connection (Default: NSAPI_SECURITY_NONE)
-     *  @param channel   Channel on which the connection is to be made, or 0 for any (Default: 0)
+     *  @param channel   Channel on which the connection is to be made.
      *  @return          0 on success, or error code on failure
      */
     virtual nsapi_error_t ap_start(const char *ssid, const char *pass = 0,
@@ -247,7 +244,6 @@ private:
         S_STA_CONNECTED,
         S_STA_DISCONNECTED_WAIT_CONNECT,
         S_STA_CONNECTION_FAIL_WAIT_DISCONNECT,
-        //S_STA_LINK_LOSS_WAIT_DISCONNECT,
         S_STA_WAIT_DISCONNECT,
 
         S_AP_IDLE,
@@ -295,7 +291,6 @@ private:
     OdinWifiState entry_connect_fail_wait_disconnect();
     OdinWifiState entry_wait_connect();
     OdinWifiState entry_wait_disconnect();
-    //OdinWifiState entry_link_loss_wait_disconnect(void);
     OdinWifiState entry_ap_wait_start();
     OdinWifiState entry_ap_started();
     OdinWifiState entry_ap_wait_stop();
@@ -374,7 +369,6 @@ private:
     Queue<odin_wifi_msg_s, 1>           _cache_queue;
     MemoryPool<odin_wifi_msg_s, 7>      *_msg_pool;
     Thread                              _thread;
-    //Timeout                             _timeout; //Randomly lost interrupts/callbacks; replaced by Timer
     Timer                               _timer;
 
     bool    _debug;

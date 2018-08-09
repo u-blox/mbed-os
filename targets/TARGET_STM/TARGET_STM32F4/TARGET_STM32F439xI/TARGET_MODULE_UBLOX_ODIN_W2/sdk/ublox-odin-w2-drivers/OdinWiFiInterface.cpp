@@ -520,10 +520,10 @@ nsapi_error_t OdinWiFiInterface::ap_start(const char *ssid, const char *pass,
     MBED_ASSERT(msg != NULL);
 
     msg->type = ODIN_WIFI_MSG_USER_AP_START;
-    msg->data.user_ap_start.ssid = ssid; // Must be valid until task is completed
-    msg->data.user_ap_start.passwd = pass;  // Must be valid until task is completed
+    msg->data.user_ap_start.ssid = ssid;        // Must be valid until task is completed
+    msg->data.user_ap_start.passwd = pass;      // Must be valid until task is completed
     msg->data.user_ap_start.security = security;
-    msg->data.user_ap_start.channel = channel;
+    msg->data.user_ap_start.channel = channel;  // Must be valid until task is completed
     msg->data.user_ap_start.beacon_interval = _ap.beacon_interval;
 
     // Put message in input queue or cache queue
