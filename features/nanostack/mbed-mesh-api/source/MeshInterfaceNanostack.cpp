@@ -74,21 +74,6 @@ Nanostack::Interface::Interface(NanostackPhy &phy) : interface_phy(phy), interfa
     mesh_system_init();
 }
 
-#if MBED_EMAC_LWIP_L2_BRIDGE
-void Nanostack::Interface::set_broadcast_to_self(bool enabled)
-{
-    // Nothing to do
-    return;
-}
-
-bool Nanostack::Interface::get_broadcast_to_self(void)
-{
-    bool var = false;
-    // Nothing to do
-    return var;
-}
-#endif
-
 InterfaceNanostack::InterfaceNanostack()
     : _interface(NULL),
       ip_addr_str(), mac_addr_str(), _blocking(true)

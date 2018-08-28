@@ -155,9 +155,9 @@ public:
     }
 
     /** Provide access to the underlying stack
-    *
-    *  @return The underlying network stack
-    */
+     *
+	 *  @return The underlying network stack
+     */
     virtual NetworkStack *get_stack();
 protected:
 

@@ -160,13 +160,6 @@ public:
      */
     virtual void set_len(emac_mem_buf_t *buf, uint32_t len);
 
-    /**
-     * Increases the reference count on the provided buffer
-     *
-     * @param buf      Memory buffer
-     */
-    void ref(emac_mem_buf_t *buf);
-
 private:
 
     /**

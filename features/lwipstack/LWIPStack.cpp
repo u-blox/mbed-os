@@ -642,12 +642,12 @@ nsapi_error_t LWIP::setsockopt(nsapi_socket_t handle, int level, int optname, co
 
             return err_remap(igmp_err);
         }
-        case NSAPI_MULTITTL:
+        case NSAPI_MULTICAST_TTL:
             if (optlen != sizeof(uint8_t)) {
                 return NSAPI_ERROR_UNSUPPORTED;
             }
 
-            udp_set_multicast_ttl(s->conn->pcb.udp, (u8_t)(*(const u8_t*)optval));
+            udp_set_multicast_ttl(s->conn->pcb.udp, (*(const u8_t*)optval));
 
             return 0;
 

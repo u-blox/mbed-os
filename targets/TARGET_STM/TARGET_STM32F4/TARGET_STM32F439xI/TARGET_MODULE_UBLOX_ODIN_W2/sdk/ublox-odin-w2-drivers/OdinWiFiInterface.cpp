@@ -170,19 +170,19 @@ OdinWiFiInterface::~OdinWiFiInterface()
 
     // Put user_connect message in input queue or cache queue
     switch(_state) {
-    case S_STARTED:
-        ok = _in_queue.put(msg, 0);
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_STARTED:
+			ok = _in_queue.put(msg, 0);
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    case S_WAIT_START:
-        ok = _cache_queue.put(msg, 0);
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_WAIT_START:
+			ok = _cache_queue.put(msg, 0);
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    default:
-        MBED_ASSERT(false);
-        break;
+		default:
+			MBED_ASSERT(false);
+			break;
     }
 
     // To synchronize, wait until response message is available
@@ -295,19 +295,19 @@ nsapi_error_t OdinWiFiInterface::connect(
 
     // Put user_connect message in input queue or cache queue
     switch(_state) {
-    case S_STARTED:
-        ok = _in_queue.put(msg, 0);
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_STARTED:
+			ok = _in_queue.put(msg, 0);
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    case S_WAIT_START:
-        ok = _cache_queue.put(msg, 0); // handle once we are started
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_WAIT_START:
+			ok = _cache_queue.put(msg, 0); // handle once we are started
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    default:
-        MBED_ASSERT(false);
-        break;
+		default:
+			MBED_ASSERT(false);
+			break;
     }
 
     // To synchronize, wait until response message is available
@@ -381,19 +381,19 @@ int OdinWiFiInterface::scan(WiFiAccessPoint *res_list, unsigned count)
 
     // Put user_connect message in input queue or cache queue
     switch(_state) {
-    case S_STARTED:
-        ok = _in_queue.put(msg);
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_STARTED:
+			ok = _in_queue.put(msg);
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    case S_WAIT_START:
-        ok = _cache_queue.put(msg);
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_WAIT_START:
+			ok = _cache_queue.put(msg);
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    default:
-        MBED_ASSERT(false);
-        break;
+		default:
+			MBED_ASSERT(false);
+			break;
     }
 
      // To synchronize, wait until response message is available
@@ -528,19 +528,19 @@ nsapi_error_t OdinWiFiInterface::ap_start(const char *ssid, const char *pass,
 
     // Put message in input queue or cache queue
     switch(_state) {
-    case S_STARTED:
-        ok = _in_queue.put(msg);
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_STARTED:
+			ok = _in_queue.put(msg);
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    case S_WAIT_START:
-        ok = _cache_queue.put(msg); // handle once we are started
-        MBED_ASSERT(ok == osOK);
-        break;
+		case S_WAIT_START:
+			ok = _cache_queue.put(msg); // handle once we are started
+			MBED_ASSERT(ok == osOK);
+			break;
 
-    default:
-        MBED_ASSERT(false);
-        break;
+		default:
+			MBED_ASSERT(false);
+			break;
     }
 
     // To synchronize, wait until response message is available
@@ -721,87 +721,87 @@ void OdinWiFiInterface::handle_in_msg(void)
             MBED_ASSERT(res == osOK);
 
             switch(msg->type) {
-            case ODIN_WIFI_MSG_USER_CONNECT:
-                handle_user_connect(&(msg->data.user_connect));
-                break;
+				case ODIN_WIFI_MSG_USER_CONNECT:
+					handle_user_connect(&(msg->data.user_connect));
+					break;
 
-            case ODIN_WIFI_MSG_USER_DISCONNECT:
-                handle_user_disconnect();
-                break;
+				case ODIN_WIFI_MSG_USER_DISCONNECT:
+					handle_user_disconnect();
+					break;
 
-            case ODIN_WIFI_MSG_USER_CONNECT_TIMEOUT:
-                handle_user_connect_timeout();
-                break;
+				case ODIN_WIFI_MSG_USER_CONNECT_TIMEOUT:
+					handle_user_connect_timeout();
+					break;
 
-            case ODIN_WIFI_MSG_USER_STOP:
-                handle_user_stop();
-                break;
+				case ODIN_WIFI_MSG_USER_STOP:
+					handle_user_stop();
+					break;
 
-            case ODIN_WIFI_MSG_USER_SCAN:
-                handle_user_scan(&(msg->data.user_scan));
-                break;
+				case ODIN_WIFI_MSG_USER_SCAN:
+					handle_user_scan(&(msg->data.user_scan));
+					break;
 
-            case ODIN_WIFI_MSG_USER_AP_START:
-                handle_user_ap_start(&(msg->data.user_ap_start));
-                break;
+				case ODIN_WIFI_MSG_USER_AP_START:
+					handle_user_ap_start(&(msg->data.user_ap_start));
+					break;
 
-            case ODIN_WIFI_MSG_USER_AP_STOP:
-                handle_user_ap_stop();
-                break;
+				case ODIN_WIFI_MSG_USER_AP_STOP:
+					handle_user_ap_stop();
+					break;
 
-            case cbWLAN_STATUS_STOPPED:
-                handle_wlan_status_stopped();
-                break;
+				case cbWLAN_STATUS_STOPPED:
+					handle_wlan_status_stopped();
+					break;
 
-            case cbWLAN_STATUS_STARTED:
-                handle_wlan_status_started(&(msg->data.wlan_status_started));
-                break;
+				case cbWLAN_STATUS_STARTED:
+					handle_wlan_status_started(&(msg->data.wlan_status_started));
+					break;
 
-            case cbWLAN_STATUS_ERROR:
-                handle_wlan_status_error();
-                break;
+				case cbWLAN_STATUS_ERROR:
+					handle_wlan_status_error();
+					break;
 
-            case cbWLAN_STATUS_DISCONNECTED:
-                handle_wlan_status_disconnected();
-                break;
+				case cbWLAN_STATUS_DISCONNECTED:
+					handle_wlan_status_disconnected();
+					break;
 
-            case cbWLAN_STATUS_CONNECTION_FAILURE:
-                handle_wlan_status_connection_failure(&(msg->data.wlan_status_connection_failure));
-                break;
+				case cbWLAN_STATUS_CONNECTION_FAILURE:
+					handle_wlan_status_connection_failure(&(msg->data.wlan_status_connection_failure));
+					break;
 
-            case cbWLAN_STATUS_CONNECTING:
-                handle_wlan_status_connecting();
-                break;
+				case cbWLAN_STATUS_CONNECTING:
+					handle_wlan_status_connecting();
+					break;
 
-            case cbWLAN_STATUS_CONNECTED:
-                handle_wlan_status_connected(&(msg->data.wlan_status_connected));
-                break;
+				case cbWLAN_STATUS_CONNECTED:
+					handle_wlan_status_connected(&(msg->data.wlan_status_connected));
+					break;
 
-            case cbWLAN_SCAN_INDICATION:
-                handle_wlan_scan_indication();
-                break;
+				case cbWLAN_SCAN_INDICATION:
+					handle_wlan_scan_indication();
+					break;
 
-            case cbWLAN_STATUS_AP_UP:
-                handle_wlan_status_ap_up();
-                break;
+				case cbWLAN_STATUS_AP_UP:
+					handle_wlan_status_ap_up();
+					break;	
 
-            case cbWLAN_STATUS_AP_DOWN:
-                handle_wlan_status_ap_down();
-                break;
+				case cbWLAN_STATUS_AP_DOWN:
+					handle_wlan_status_ap_down();
+					break;
 
-            case cbWLAN_STATUS_AP_STA_ADDED:
-                _ap.cnt_connected++;
-                if(_debug) {printf("cbWLAN_STATUS_AP_STA_ADDED: %d\r\n", _ap.cnt_connected);}
-                break;
+				case cbWLAN_STATUS_AP_STA_ADDED:
+					_ap.cnt_connected++;
+					if(_debug) {printf("cbWLAN_STATUS_AP_STA_ADDED: %d\r\n", _ap.cnt_connected);}
+					break;
 
-            case cbWLAN_STATUS_AP_STA_REMOVED:
-                _ap.cnt_connected--;
-                if(_debug) {printf("cbWLAN_STATUS_AP_STA_REMOVED: %d\r\n", _ap.cnt_connected);}
-                break;
+				case cbWLAN_STATUS_AP_STA_REMOVED:
+					_ap.cnt_connected--;
+					if(_debug) {printf("cbWLAN_STATUS_AP_STA_REMOVED: %d\r\n", _ap.cnt_connected);}
+					break;
 
-            default:
-                MBED_ASSERT(false);
-                break;
+				default:
+					MBED_ASSERT(false);
+					break;
             }
 
             res = _mutex.unlock();
@@ -830,25 +830,25 @@ void OdinWiFiInterface::handle_cached_msg(void)
         MBED_ASSERT(msg != 0);
 
         switch(msg->type) {
-        case ODIN_WIFI_MSG_USER_CONNECT:
-            handle_user_connect(&(msg->data.user_connect));
-            break;
+			case ODIN_WIFI_MSG_USER_CONNECT:
+				handle_user_connect(&(msg->data.user_connect));
+				break;
 
-        case ODIN_WIFI_MSG_USER_SCAN:
-            handle_user_scan(&(msg->data.user_scan));
-            break;
+			case ODIN_WIFI_MSG_USER_SCAN:
+				handle_user_scan(&(msg->data.user_scan));
+				break;
 
-        case ODIN_WIFI_MSG_USER_STOP:
-            handle_user_stop();
-            break;
+			case ODIN_WIFI_MSG_USER_STOP:
+				handle_user_stop();
+				break;
 
-        case ODIN_WIFI_MSG_USER_AP_START:
-            handle_user_ap_start(&(msg->data.user_ap_start));
-            break;
+			case ODIN_WIFI_MSG_USER_AP_START:
+				handle_user_ap_start(&(msg->data.user_ap_start));
+				break;
 
-        default:
-            MBED_ASSERT(false);
-            break;
+			default:
+				MBED_ASSERT(false);
+				break;
         }
 
         if(msg != 0) {
@@ -895,14 +895,14 @@ void OdinWiFiInterface::handle_user_connect(user_connect_s *user_connect)
 void OdinWiFiInterface::handle_user_disconnect(void)
 {
     switch(_state_sta) {
-    case S_STA_CONNECTED:
-    case S_STA_DISCONNECTED_WAIT_CONNECT:
-        _state_sta = entry_wait_disconnect();
-        break;
+		case S_STA_CONNECTED:
+		case S_STA_DISCONNECTED_WAIT_CONNECT:
+			_state_sta = entry_wait_disconnect();
+			break;
 
-    default:
-        send_user_response_msg(ODIN_WIFI_MSG_USER_DISCONNECT, NSAPI_ERROR_NO_CONNECTION);
-        break;
+		default:
+			send_user_response_msg(ODIN_WIFI_MSG_USER_DISCONNECT, NSAPI_ERROR_NO_CONNECTION);
+			break;
     }
 }
 
@@ -1015,13 +1015,13 @@ void OdinWiFiInterface::handle_user_ap_start(user_ap_start_s *user_ap_start)
 void OdinWiFiInterface::handle_user_ap_stop()
 {
     switch(_state_ap) {
-    case S_AP_STARTED:
-        _state_ap = entry_ap_wait_stop();
-        break;
+		case S_AP_STARTED:
+			_state_ap = entry_ap_wait_stop();
+			break;
 
-    default:
-        send_user_response_msg(ODIN_WIFI_MSG_USER_AP_STOP, NSAPI_ERROR_DEVICE_ERROR);
-        break;
+		default:
+			send_user_response_msg(ODIN_WIFI_MSG_USER_AP_STOP, NSAPI_ERROR_DEVICE_ERROR);
+			break;
     }
 }
 
@@ -1034,62 +1034,65 @@ void OdinWiFiInterface::handle_wlan_status_started(wlan_status_started_s *start)
     MBED_ASSERT(start != 0);
 
     switch(_state) {
-    case S_WAIT_START:
-        sprintf(_mac_addr_str,
-            "%02x:%02x:%02x:%02x:%02x:%02x",
-            start->info.macAddress[0],
-            start->info.macAddress[1],
-            start->info.macAddress[2],
-            start->info.macAddress[3],
-            start->info.macAddress[4],
-            start->info.macAddress[5]);
+		case S_WAIT_START:
+			sprintf(_mac_addr_str,
+				"%02x:%02x:%02x:%02x:%02x:%02x",
+				start->info.macAddress[0],
+				start->info.macAddress[1],
+				start->info.macAddress[2],
+				start->info.macAddress[3],
+				start->info.macAddress[4],
+				start->info.macAddress[5]);
 
-        if(!_wlan_initialized) {
-            //Initialize network stack interface without activating it
-        }
+			if(!_wlan_initialized) {
+				//Initialize network stack interface without activating it
+			}
 
-        if (!_interface) {
-            nsapi_error_t error_code = _stack.add_ethernet_interface(_emac, true, &_interface);
-            if (error_code != NSAPI_ERROR_OK) {
-                _interface = NULL;
-            }
-        }
+			if (!_interface) {
+				nsapi_error_t error_code = _stack.add_ethernet_interface(_emac, true, &_interface);
+				if (error_code != NSAPI_ERROR_OK) {
+					_interface = NULL;
+				}
+				else {
+					_interface->attach(_connection_status_cb);
+				}
+			}
 
 
-#ifdef DEVICE_WIFI_AP
-        if(!_wlan_initialized) {
-            _wlan_initialized = true;
-        }
-#else
-        if (!_wlan_initialized) {
-            _wlan_initialized = true;
-        }
-#endif
+	#ifdef DEVICE_WIFI_AP
+			if(!_wlan_initialized) {
+				_wlan_initialized = true;
+			}
+	#else
+			if (!_wlan_initialized) {
+				_wlan_initialized = true;
+			}
+	#endif
 
-        // The OdinWifiInterface object is now fully initialized
-        _state = S_STARTED;
-        _state_sta = S_STA_IDLE;
-        _state_ap = S_AP_IDLE;
+			// The OdinWifiInterface object is now fully initialized
+			_state = S_STARTED;
+			_state_sta = S_STA_IDLE;
+			_state_ap = S_AP_IDLE;
 
-        handle_cached_msg();
-        break;
+			handle_cached_msg();
+			break;
 
-    case S_STARTED:
-        switch(_state_ap) {
-        case S_AP_WAIT_DRV_START:
-            _state_ap = S_AP_IDLE;
+		case S_STARTED:
+			switch(_state_ap) {
+			case S_AP_WAIT_DRV_START:
+				_state_ap = S_AP_IDLE;
 
-            send_user_response_msg(ODIN_WIFI_MSG_USER_AP_STOP, NSAPI_ERROR_OK);
-            break;
+				send_user_response_msg(ODIN_WIFI_MSG_USER_AP_STOP, NSAPI_ERROR_OK);
+				break;
 
-        default:
-            MBED_ASSERT(false);
-            break;
-        }
-        break;
+			default:
+				MBED_ASSERT(false);
+				break;
+			}
+			break;
 
-    default:
-        MBED_ASSERT(false);
+		default:
+			MBED_ASSERT(false);
         break;
     }
 
@@ -1104,36 +1107,36 @@ void OdinWiFiInterface::handle_wlan_status_stopped()
     cbRTSL_Status status;
 
     switch(_state) {
-    case S_WAIT_START:
-        // Ignore
-        break;
+		case S_WAIT_START:
+			// Ignore
+			break;
 
-    case S_WAIT_STOP:
-        _state = S_INVALID;
+		case S_WAIT_STOP:
+			_state = S_INVALID;
 
-        cbMAIN_driverLock();
-        status = cbWLAN_deregisterStatusCallback(wlan_callb_s::status_indication_callback, this);
-        cbMAIN_driverUnlock();
-        MBED_ASSERT(status == cbSTATUS_OK);
+			cbMAIN_driverLock();
+			status = cbWLAN_deregisterStatusCallback(wlan_callb_s::status_indication_callback, this);
+			cbMAIN_driverUnlock();
+			MBED_ASSERT(status == cbSTATUS_OK);
 
-        send_user_response_msg(ODIN_WIFI_MSG_USER_STOP, NSAPI_ERROR_OK);
-        break;
+			send_user_response_msg(ODIN_WIFI_MSG_USER_STOP, NSAPI_ERROR_OK);
+			break;
 
-    case S_STARTED:
-        switch(_state_ap) {
-        case S_AP_WAIT_DRV_STOP:
-            _state_ap = entry_ap_wait_drv_start();
-            break;
+		case S_STARTED:
+			switch(_state_ap) {
+				case S_AP_WAIT_DRV_STOP:
+					_state_ap = entry_ap_wait_drv_start();
+					break;
 
-        default:
-            MBED_ASSERT(false);
-            break;
-        }
-        break;
+				default:
+					MBED_ASSERT(false);
+					break;
+			}
+			break;
 
-    default:
-        MBED_ASSERT(FALSE);
-        break;
+		default:
+			MBED_ASSERT(FALSE);
+			break;
     }
 }
 
@@ -1160,42 +1163,42 @@ void OdinWiFiInterface::handle_wlan_status_connected(wlan_status_connected_s *wl
     MBED_ASSERT(wlan_connect != 0);
 
     switch(_state_sta) {
-    case S_STA_WAIT_CONNECT:
-        _timer.stop();
+		case S_STA_WAIT_CONNECT:
+			_timer.stop();
 
-        if(_debug) {
-            printf("MBED_IPSTACK_ \r\n");
-        }
+			if(_debug) {
+				printf("MBED_IPSTACK_ \r\n");
+			}
         
-        error_code = _interface->bringup(_dhcp,
-                    _ip_address[0] ? _ip_address : 0,
-                    _netmask[0] ? _netmask : 0,
-                    _gateway[0] ? _gateway : 0,
-                    DEFAULT_STACK);
+			error_code = _interface->bringup(_dhcp,
+						_ip_address[0] ? _ip_address : 0,
+						_netmask[0] ? _netmask : 0,
+						_gateway[0] ? _gateway : 0,
+						DEFAULT_STACK);
         
 
-        if (error_code == NSAPI_ERROR_OK || error_code == NSAPI_ERROR_IS_CONNECTED) {
-            memcpy(&_wlan_status_connected_info, &(wlan_connect->info), sizeof(cbWLAN_StatusConnectedInfo));
-            _state_sta = S_STA_CONNECTED;
-            send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, NSAPI_ERROR_OK);
-        }
-        else {
-            _state_sta = entry_connect_fail_wait_disconnect();
-        }
-        break;
+			if (error_code == NSAPI_ERROR_OK || error_code == NSAPI_ERROR_IS_CONNECTED) {
+				memcpy(&_wlan_status_connected_info, &(wlan_connect->info), sizeof(cbWLAN_StatusConnectedInfo));
+				_state_sta = S_STA_CONNECTED;
+				send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, NSAPI_ERROR_OK);
+			}
+			else {
+				_state_sta = entry_connect_fail_wait_disconnect();
+			}
+			break;
 
-    case S_STA_DISCONNECTED_WAIT_CONNECT:
-        _state_sta = S_STA_CONNECTED;
-        break;
+		case S_STA_DISCONNECTED_WAIT_CONNECT:
+			_state_sta = S_STA_CONNECTED;
+			break;
 
-    case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
-    case S_STA_WAIT_DISCONNECT:
-        //Ignore
-        break;
+		case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
+		case S_STA_WAIT_DISCONNECT:
+			//Ignore
+			break;
 
-    default:
-        MBED_ASSERT(FALSE);
-        break;
+		default:
+			MBED_ASSERT(FALSE);
+			break;
     }
 }
 
@@ -1210,31 +1213,31 @@ void OdinWiFiInterface::handle_wlan_status_connection_failure(wlan_status_connec
     memcpy(&_wlan_status_disconnected_info, &(connect_failure->info), sizeof(cbWLAN_StatusDisconnectedInfo));
 
     switch(_state_sta) {
-    case S_STA_WAIT_CONNECT:
-         //Ignore - wait until timeout or connection success
-        handle_user_connect_timeout();
-        break;
+		case S_STA_WAIT_CONNECT:
+			 //Ignore - wait until timeout or connection success
+			handle_user_connect_timeout();
+			break;
 
-    case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
-        //Ignore
-        break;
+		case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
+			//Ignore
+			break;
 
-    case S_STA_CONNECTED:
-        _state_sta = S_STA_DISCONNECTED_WAIT_CONNECT;
-        break;
+		case S_STA_CONNECTED:
+			_state_sta = S_STA_DISCONNECTED_WAIT_CONNECT;
+			break;
 
-    case S_STA_DISCONNECTED_WAIT_CONNECT:
-        //Ignore
-        break;
+		case S_STA_DISCONNECTED_WAIT_CONNECT:
+			//Ignore
+			break;
 
-    case S_STA_WAIT_DISCONNECT:
-        //Ignore
-        break;
+		case S_STA_WAIT_DISCONNECT:
+			//Ignore
+			break;
 
-    default:
-        if(_debug) printf("ASSERT: S %d\r\n", _state_sta);
-        MBED_ASSERT(FALSE);
-        break;
+		default:
+			if(_debug) printf("ASSERT: S %d\r\n", _state_sta);
+			MBED_ASSERT(FALSE);
+			break;
     }
 }
 
@@ -1247,55 +1250,55 @@ void OdinWiFiInterface::handle_wlan_status_disconnected(void)
     }
 
     switch(_state_sta) {
-    case S_STA_WAIT_CONNECT:
-        handle_user_connect_timeout();
-        break;
+		case S_STA_WAIT_CONNECT:
+			handle_user_connect_timeout();
+			break;
 
-    case S_STA_CONNECTED:
-        _state_sta = S_STA_DISCONNECTED_WAIT_CONNECT;
-        break;
+		case S_STA_CONNECTED:
+			_state_sta = S_STA_DISCONNECTED_WAIT_CONNECT;
+			break;
 
-    case S_STA_DISCONNECTED_WAIT_CONNECT:
-        //Ignore
-        break;
+		case S_STA_DISCONNECTED_WAIT_CONNECT:
+			//Ignore
+			break;
 
-    case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
-        _state_sta = S_STA_IDLE;
+		case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
+			_state_sta = S_STA_IDLE;
 
-        switch(_wlan_status_disconnected_info) {
-        case cbWLAN_STATUS_DISCONNECTED_NO_BSSID_FOUND:
-            error_code = NSAPI_ERROR_NO_SSID;
-            break;
+			switch(_wlan_status_disconnected_info) {
+				case cbWLAN_STATUS_DISCONNECTED_NO_BSSID_FOUND:
+					error_code = NSAPI_ERROR_NO_SSID;
+					break;
 
-        case cbWLAN_STATUS_DISCONNECTED_AUTH_TIMEOUT:
-        case cbWLAN_STATUS_DISCONNECTED_MIC_FAILURE:
-            error_code = NSAPI_ERROR_AUTH_FAILURE;
-            break;
-        case cbWLAN_STATUS_DISCONNECTED_UNKNOWN:
-            error_code = NSAPI_ERROR_NO_CONNECTION;
-            break;
-        default:
-            error_code = NSAPI_ERROR_DEVICE_ERROR;
-            break;
-        }
+				case cbWLAN_STATUS_DISCONNECTED_AUTH_TIMEOUT:
+				case cbWLAN_STATUS_DISCONNECTED_MIC_FAILURE:
+					error_code = NSAPI_ERROR_AUTH_FAILURE;
+					break;
+				case cbWLAN_STATUS_DISCONNECTED_UNKNOWN:
+					error_code = NSAPI_ERROR_NO_CONNECTION;
+					break;
+				default:
+					error_code = NSAPI_ERROR_DEVICE_ERROR;
+					break;
+			}
 
-        send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, error_code);
-        break;
+			send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, error_code);
+			break;
 
-    case S_STA_WAIT_DISCONNECT:
-        if(_debug) {
-            printf("MBED_IPSTACK_BRINGDOWN\r\n");
-        }
-        _interface->bringdown();
+		case S_STA_WAIT_DISCONNECT:
+			if(_debug) {
+				printf("MBED_IPSTACK_BRINGDOWN\r\n");
+			}
+			_interface->bringdown();
 
-        _state_sta = S_STA_IDLE;
+			_state_sta = S_STA_IDLE;
 
-        send_user_response_msg(ODIN_WIFI_MSG_USER_DISCONNECT, NSAPI_ERROR_OK);
-        break;
+			send_user_response_msg(ODIN_WIFI_MSG_USER_DISCONNECT, NSAPI_ERROR_OK);
+			break;
 		
-    default:
-        MBED_ASSERT(FALSE);
-        break;
+		default:
+			MBED_ASSERT(FALSE);
+			break;
     }
 }
 
@@ -1329,36 +1332,33 @@ void OdinWiFiInterface::handle_wlan_status_ap_up()
     }
 
     switch(_state_ap) {
-    case S_AP_WAIT_START:
+		case S_AP_WAIT_START:
 
-        if(_debug) {
-            printf("MBED_IPSTACK_BRINGUP\r\n");
-        }
+			if(_debug) {
+				printf("MBED_IPSTACK_BRINGUP\r\n");
+			}
 
-        error_code = _interface->bringup(_ap.use_dhcp,
-            _ap.ip_address[0] ? _ap.ip_address : 0,
-            _ap.netmask[0] ? _ap.netmask : 0,
-            _ap.gateway[0] ? _ap.gateway : 0,
-            DEFAULT_STACK);
+			error_code = _interface->bringup(_ap.use_dhcp,
+				_ap.ip_address[0] ? _ap.ip_address : 0,
+				_ap.netmask[0] ? _ap.netmask : 0,
+				_ap.gateway[0] ? _ap.gateway : 0,
+				DEFAULT_STACK);
 
-#if MBED_EMAC_LWIP_L2_BRIDGE
-        _interface->set_broadcast_to_self(true);
-#endif
-        if(error_code == NSAPI_ERROR_OK) {
-            _state_ap = S_AP_STARTED;
+			if(error_code == NSAPI_ERROR_OK) {
+				_state_ap = S_AP_STARTED;
 
-            send_user_response_msg(ODIN_WIFI_MSG_USER_AP_START, NSAPI_ERROR_OK);
-        }
-        else {
-            _ap.error_code = error_code;
+				send_user_response_msg(ODIN_WIFI_MSG_USER_AP_START, NSAPI_ERROR_OK);
+			}
+			else {
+				_ap.error_code = error_code;
 
-            _state_ap = entry_ap_fail_wait_stop();
-        }
-        break;
+				_state_ap = entry_ap_fail_wait_stop();
+			}
+			break;
 
-    default:
-        MBED_ASSERT(FALSE);
-        break;
+		default:
+			MBED_ASSERT(FALSE);
+			break;
     }
 }
 
@@ -1373,21 +1373,21 @@ void OdinWiFiInterface::handle_wlan_status_ap_down()
     }
 
     switch(_state_ap) {
-    case S_AP_WAIT_STOP:
-        _interface->bringdown();
+		case S_AP_WAIT_STOP:
+			_interface->bringdown();
 
-        _state_ap = entry_ap_wait_drv_stop();
-        break;
+			_state_ap = entry_ap_wait_drv_stop();
+			break;
 
-    case S_AP_FAIL_WAIT_STOP:
-        _state_ap = S_AP_IDLE;
+		case S_AP_FAIL_WAIT_STOP:
+			_state_ap = S_AP_IDLE;
 
-        send_user_response_msg(ODIN_WIFI_MSG_USER_AP_START, _ap.error_code);
-        break;
+			send_user_response_msg(ODIN_WIFI_MSG_USER_AP_START, _ap.error_code);
+			break;
 
-    default:
-        MBED_ASSERT(false);
-        break;
+		default:
+			MBED_ASSERT(false);
+			break;
     }
 }
 
@@ -1517,34 +1517,34 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
 
     switch (security)
     {
-    case NSAPI_SECURITY_NONE:
-        cbMAIN_driverLock();
-        status = cbWLAN_connectOpen(&connect_params);
-        cbMAIN_driverUnlock();
-        break;
-    case NSAPI_SECURITY_WPA:
-    case NSAPI_SECURITY_WPA2:
-    case NSAPI_SECURITY_WPA_WPA2:
-        char                            temp_passphrase[cbWLAN_MAX_PASSPHRASE_LENGTH];
-        cbWLAN_WPAPSKConnectParameters  wpa_connect_params;
+		case NSAPI_SECURITY_NONE:
+			cbMAIN_driverLock();
+			status = cbWLAN_connectOpen(&connect_params);
+			cbMAIN_driverUnlock();
+			break;
+		case NSAPI_SECURITY_WPA:
+		case NSAPI_SECURITY_WPA2:
+		case NSAPI_SECURITY_WPA_WPA2:
+			char                            temp_passphrase[cbWLAN_MAX_PASSPHRASE_LENGTH];
+			cbWLAN_WPAPSKConnectParameters  wpa_connect_params;
 
-        memset(temp_passphrase, 0, cbWLAN_MAX_PASSPHRASE_LENGTH);
-        strncpy(temp_passphrase, passwd, cbWLAN_MAX_PASSPHRASE_LENGTH);
+			memset(temp_passphrase, 0, cbWLAN_MAX_PASSPHRASE_LENGTH);
+			strncpy(temp_passphrase, passwd, cbWLAN_MAX_PASSPHRASE_LENGTH);
 
-        cbMAIN_driverLock();
-        status = cbWLAN_Util_PSKFromPWD(temp_passphrase, connect_params.ssid, wpa_connect_params.psk.key);
+			cbMAIN_driverLock();
+			status = cbWLAN_Util_PSKFromPWD(temp_passphrase, connect_params.ssid, wpa_connect_params.psk.key);
 
-        if (status == cbSTATUS_OK) {
-            status = cbWLAN_connectWPAPSK(&connect_params, &wpa_connect_params);
-        }
-        cbMAIN_driverUnlock();
-        if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
-        break;
+			if (status == cbSTATUS_OK) {
+				status = cbWLAN_connectWPAPSK(&connect_params, &wpa_connect_params);
+			}
+			cbMAIN_driverUnlock();
+			if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
+			break;
 
-    case NSAPI_SECURITY_WEP:
-    default:
-        status = cbSTATUS_ERROR;
-        break;
+		case NSAPI_SECURITY_WEP:
+		default:
+			status = cbSTATUS_ERROR;
+			break;
     }
 
     if(status != cbSTATUS_OK) {
@@ -1586,35 +1586,35 @@ nsapi_error_t OdinWiFiInterface::wlan_ap_start(
         error_code = NSAPI_ERROR_PARAMETER;
     } else {
         switch (security) {
-        case NSAPI_SECURITY_NONE:
-            cbMAIN_driverLock();
-            status = cbWLAN_apStartOpen(&params);
-            cbMAIN_driverUnlock();
-            break;
+			case NSAPI_SECURITY_NONE:
+				cbMAIN_driverLock();
+				status = cbWLAN_apStartOpen(&params);
+				cbMAIN_driverUnlock();
+				break;
 
-        case NSAPI_SECURITY_WEP:
-            status = cbSTATUS_ERROR;
-            break;
+			case NSAPI_SECURITY_WEP:
+				status = cbSTATUS_ERROR;
+				break;
 
-        case NSAPI_SECURITY_WPA:
-        case NSAPI_SECURITY_WPA2:
-        case NSAPI_SECURITY_WPA_WPA2:
-            set_wpa_rsn_cipher(security, wpa_params.wpaCiphers, wpa_params.rsnCiphers);
+			case NSAPI_SECURITY_WPA:
+			case NSAPI_SECURITY_WPA2:
+			case NSAPI_SECURITY_WPA_WPA2:
+				set_wpa_rsn_cipher(security, wpa_params.wpaCiphers, wpa_params.rsnCiphers);
 
-            memcpy(temp_passphrase, pass, strlen(pass));
+				memcpy(temp_passphrase, pass, strlen(pass));
 
-            cbMAIN_driverLock();
-            status = cbWLAN_Util_PSKFromPWD(temp_passphrase, params.ssid, wpa_params.psk.key);
+				cbMAIN_driverLock();
+				status = cbWLAN_Util_PSKFromPWD(temp_passphrase, params.ssid, wpa_params.psk.key);
 
-            if (status == cbSTATUS_OK) {
-                status = cbWLAN_apStartWPAPSK(&params, &wpa_params);
-            }
-            cbMAIN_driverUnlock();
-            break;
+				if (status == cbSTATUS_OK) {
+					status = cbWLAN_apStartWPAPSK(&params, &wpa_params);
+				}
+				cbMAIN_driverUnlock();
+				break;
 
-        default:
-            status = cbSTATUS_ERROR;
-            break;
+			default:
+				status = cbSTATUS_ERROR;
+				break;
         }
 
         if (status != cbSTATUS_OK) {
@@ -1697,22 +1697,22 @@ static void set_wpa_rsn_cipher(
     rsn_ciphers = cbWLAN_CIPHER_SUITE_NONE;
 
     switch(security) {
-    case NSAPI_SECURITY_WPA:
-        wpa_ciphers = cbWLAN_CIPHER_SUITE_TKIP;
-        break;
+		case NSAPI_SECURITY_WPA:
+			wpa_ciphers = cbWLAN_CIPHER_SUITE_TKIP;
+			break;
 
-    case NSAPI_SECURITY_WPA2:
-        rsn_ciphers = cbWLAN_CIPHER_SUITE_AES_CCMP;
-        break;
+		case NSAPI_SECURITY_WPA2:
+			rsn_ciphers = cbWLAN_CIPHER_SUITE_AES_CCMP;
+			break;
 
-    case NSAPI_SECURITY_WPA_WPA2:
-        wpa_ciphers = (cbWLAN_CipherSuite)(cbWLAN_CIPHER_SUITE_TKIP | cbWLAN_CIPHER_SUITE_AES_CCMP);
-        rsn_ciphers = (cbWLAN_CipherSuite)(cbWLAN_CIPHER_SUITE_TKIP | cbWLAN_CIPHER_SUITE_AES_CCMP);
-        break;
+		case NSAPI_SECURITY_WPA_WPA2:
+			wpa_ciphers = (cbWLAN_CipherSuite)(cbWLAN_CIPHER_SUITE_TKIP | cbWLAN_CIPHER_SUITE_AES_CCMP);
+			rsn_ciphers = (cbWLAN_CipherSuite)(cbWLAN_CIPHER_SUITE_TKIP | cbWLAN_CIPHER_SUITE_AES_CCMP);
+			break;
 
-    default:
-        MBED_ASSERT(false);
-        break;
+		default:
+			MBED_ASSERT(false);
+			break;
     }
 }
 
@@ -1820,32 +1820,32 @@ static bool is_valid_AP_channel(cbWLAN_Channel channel)
     bool ok = false;
 
     switch (channel) {
-    case cbWLAN_CHANNEL_01:
-    case cbWLAN_CHANNEL_02:
-    case cbWLAN_CHANNEL_03:
-    case cbWLAN_CHANNEL_04:
-    case cbWLAN_CHANNEL_05:
-    case cbWLAN_CHANNEL_06:
-    case cbWLAN_CHANNEL_07:
-    case cbWLAN_CHANNEL_08:
-    case cbWLAN_CHANNEL_09:
-    case cbWLAN_CHANNEL_10:
-    case cbWLAN_CHANNEL_11:
+		case cbWLAN_CHANNEL_01:
+		case cbWLAN_CHANNEL_02:
+		case cbWLAN_CHANNEL_03:
+		case cbWLAN_CHANNEL_04:
+		case cbWLAN_CHANNEL_05:
+		case cbWLAN_CHANNEL_06:
+		case cbWLAN_CHANNEL_07:
+		case cbWLAN_CHANNEL_08:
+		case cbWLAN_CHANNEL_09:
+		case cbWLAN_CHANNEL_10:
+		case cbWLAN_CHANNEL_11:
 /*
 // TODO: DO NOT ENABLE UNTIL GUARANTEED EUROPEAN MODULE (or this is blocked in wlan driver..)
     case cbWLAN_CHANNEL_12:
     case cbWLAN_CHANNEL_13:
 */
-    case cbWLAN_CHANNEL_36:
-    case cbWLAN_CHANNEL_40:
-    case cbWLAN_CHANNEL_44:
-    case cbWLAN_CHANNEL_48:
-        ok = true;
-        break;
+		case cbWLAN_CHANNEL_36:
+		case cbWLAN_CHANNEL_40:
+		case cbWLAN_CHANNEL_44:
+		case cbWLAN_CHANNEL_48:
+			ok = true;
+			break;
 
-    default:
-        ok = false;
-        break;
+		default:
+			ok = false;
+			break;
     }
 
     return ok;

@@ -19,7 +19,7 @@
 
 #include "WiFiInterface.h"
 #ifdef DEVICE_WIFI_AP
-#include "WiFiSoftAPInterface.h"
+#include "UbloxWiFiSoftAPInterface.h"
 #endif
 
 #include "mbed.h"
@@ -46,7 +46,7 @@ struct wlan_scan_indication_s;
  *  Implementation of the WiFiInterface for the ODIN-W2 module
  */
 #ifdef DEVICE_WIFI_AP
-class OdinWiFiInterface : public WiFiInterface, public WiFiSoftAPInterface, public EMACInterface
+class OdinWiFiInterface : public WiFiInterface, public UbloxWiFiSoftAPInterface, public EMACInterface
 #else
 class OdinWiFiInterface : public WiFiInterface, public EMACInterface
 #endif

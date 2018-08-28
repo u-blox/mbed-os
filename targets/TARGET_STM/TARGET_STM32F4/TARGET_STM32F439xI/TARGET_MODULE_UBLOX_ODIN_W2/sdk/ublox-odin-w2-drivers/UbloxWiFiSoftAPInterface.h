@@ -25,12 +25,12 @@
  *
  *  Common interface that is shared between WiFi devices supporting SoftAP mode
  */
-class WiFiSoftAPInterface
+class UbloxWiFiSoftAPInterface
 {
 public:
     /** WiFiSoftAPInterface lifetime
      */
-    virtual ~WiFiSoftAPInterface() {};
+    virtual ~UbloxWiFiSoftAPInterface() {};
 
     /** Set the WiFi network credentials
      *
