@@ -1,5 +1,5 @@
 
-/* WiFiSoftAPInterface
+/* UbloxWiFiSoftAPInterface
  * Copyright (c) 2015 - 2016 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-#ifndef WIFI_SOFTAPINTERFACE_H
-#define WIFI_SOFTAPINTERFACE_H
+#ifndef UBLOX_WIFI_SOFTAPINTERFACE_H
+#define UBLOX_WIFI_SOFTAPINTERFACE_H
 
 #include <string.h>
 #include "netsocket/WiFiAccessPoint.h"
 
-/** WiFiSoftAPInterface class
+/** UbloxWiFiSoftAPInterface class
  *
  *  Common interface that is shared between WiFi devices supporting SoftAP mode
  */
 class UbloxWiFiSoftAPInterface
 {
 public:
-    /** WiFiSoftAPInterface lifetime
+    /** UbloxWiFiSoftAPInterface lifetime
      */
     virtual ~UbloxWiFiSoftAPInterface() {};
 

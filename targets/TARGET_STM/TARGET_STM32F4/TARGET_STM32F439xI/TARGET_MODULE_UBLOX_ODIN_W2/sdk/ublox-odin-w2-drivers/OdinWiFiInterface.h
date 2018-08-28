@@ -147,7 +147,7 @@ public:
          *  @param netmask     Null-terminated representation of the network mask
          *  @return            0 on success, negative error code on failure
          */
-    //TODO: In previous WiFiInterface.h but not in new WiFiSoftAPInterface
+    //TODO: In previous WiFiInterface.h but not in new UbloxWiFiSoftAPInterface
     virtual nsapi_error_t set_ap_network(const char *ip_address, const char *netmask, const char *gateway);
 
     /** Set the WiFi network credentials
