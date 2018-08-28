@@ -153,6 +153,7 @@ SerialBase::~SerialBase()
     for (int irq = 0; irq < IrqCnt; irq++) {
         attach(NULL, (IrqType)irq);
     }
+    serial_free(&_serial);
 }
 
 #if DEVICE_SERIAL_FC
