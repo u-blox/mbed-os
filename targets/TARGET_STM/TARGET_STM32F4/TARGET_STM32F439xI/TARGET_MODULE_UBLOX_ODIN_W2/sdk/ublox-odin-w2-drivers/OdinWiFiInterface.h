@@ -374,5 +374,4 @@ private:
     bool    _debug;
     int     _dbg_timeout;
 };
-
 #endif

@@ -1850,5 +1850,3 @@ static bool is_valid_AP_channel(cbWLAN_Channel channel)
 
     return ok;
 }
-
-
