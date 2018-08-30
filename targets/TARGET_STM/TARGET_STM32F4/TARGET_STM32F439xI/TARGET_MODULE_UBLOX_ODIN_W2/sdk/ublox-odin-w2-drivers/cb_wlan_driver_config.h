@@ -247,7 +247,7 @@ cbRTSL_Status cbTARGET_configure(cbTARGET_Handle* hTarget, cbTARGET_ConfigParams
 #define W_CONST_BEACON_INTERVAL					    (100)
 #define W_CONST_JOIN_FAILURE_TIMEOUT                (600)
 #define W_CONST_WLAN_BT_COEX                        (0)
-#define W_CONST_DATA_RATE                           (cbWLAN_RATE_24)
+#define W_CONST_DATA_RATE                           (cbWLAN_RATE_18)
 #define W_CONST_LINK_ADAPTION                       (1)
 #define W_CONST_POWER_SAVE                          (2)
 #define W_CONST_DTIM_ENABLE                         (1)
@@ -276,9 +276,8 @@ cbRTSL_Status cbTARGET_configure(cbTARGET_Handle* hTarget, cbTARGET_ConfigParams
 
 #define W_CONST_DEFAULT_AP_STA_INACTIVITY_TIMEOUT   (120)
 
-
-#define W_CONST_DEFAULT_DOT11_SHORT_RETRY_LIMIT (0x0a0a0a0aul)
-#define W_CONST_DEFAULT_DOT11_LONG_RETRY_LIMIT  (0x0a0a0a0aul)
+#define W_CONST_DEFAULT_DOT11_SHORT_RETRY_LIMIT (0x0a0a0a01ul)
+#define W_CONST_DEFAULT_DOT11_LONG_RETRY_LIMIT  (0x0a0a0a01ul)
 #define W_CONST_DEFAULT_AP_DOT11_SHORT_RETRY_LIMIT  (0x0a0a0a0aul)
 #define W_CONST_DEFAULT_AP_DOT11_LONG_RETRY_LIMIT   (0x0a0a0a0aul)
 
