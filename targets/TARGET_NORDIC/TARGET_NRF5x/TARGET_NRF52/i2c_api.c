@@ -518,6 +518,25 @@ static void nordic_nrf5_twi_event_handler(nrf_drv_twi_evt_t const *p_event, void
 #endif
 
 /**
+ * @brief      Disable the driver.
+ *
+ * @param      obj           The object
+ */
+void i2c_disable_driver_instance(i2c_t *obj)
+{
+#if DEVICE_I2C_ASYNCH
+    struct i2c_s *config = &obj->i2c;
+#else
+    struct i2c_s *config = obj;
+#endif
+
+    int instance = config->instance;
+
+    nrf_drv_twi_disable(&nordic_nrf5_instance[instance]);
+    nrf_drv_twi_uninit(&nordic_nrf5_instance[instance]);
+}
+
+/**
  * @brief      Reconfigure driver.
  *
  *             If the peripheral is enabled, it will be disabled first. All

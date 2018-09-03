@@ -151,9 +151,12 @@ public:
      */
     virtual void unlock(void);
 
-    virtual ~I2C()
+    /** Disable the HW and allow the Nordic state
+     * machine to sort itself out
+     */
+    ~I2C()
     {
-        // Do nothing
+        i2c_disable_driver_instance(&_i2c);
     }
 
 #if DEVICE_I2C_ASYNCH
