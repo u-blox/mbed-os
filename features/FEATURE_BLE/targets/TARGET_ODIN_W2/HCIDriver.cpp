@@ -201,13 +201,13 @@ private:
 
 void ble::vendor::wl1837::HCIDriver::do_initialize()
 {
-	shutdown = 0;
-	wait_ms(100);
-	// init_32k();
-	wait_ms(20);
-	shutdown = 1;
+    shutdown = 0;
+    wait_ms(100);
+    // init_32k();
+    wait_ms(20);
+    shutdown = 1;
     hci_rts = 0;
-	wait_ms(500);
+    wait_ms(500);
 }
 
 void ble::vendor::wl1837::HCIDriver::do_terminate()
@@ -223,7 +223,7 @@ void ble::vendor::wl1837::HCIDriver::start_reset_sequence()
 
 void ble::vendor::wl1837::HCIDriver::handle_reset_sequence(uint8_t *pMsg)
 {
-	uint16_t       opcode;
+    uint16_t       opcode;
     static uint8_t randCnt;
 
     /* if event is a command complete event */
@@ -382,5 +382,12 @@ void ble::vendor::wl1837::HCIDriver::handle_reset_sequence(uint8_t *pMsg)
 }
 
 ble::vendor::cordio::CordioHCIDriver& ble_cordio_get_hci_driver() {
-
+    static ble::vendor::cordio::H4TransportDriver transport_driver(
+            /* TX */ PG_14, /* RX */ PC_7, /* cts */ PG_15, /* rts */ PG_12, 115200
+    );
+    static ble::vendor::wl1837::HCIDriver hci_driver(
+    //        transport_driver, /* host wake */ cbPIO_PIN_BT_HOST_WAKEUP, /* device wake */ cbPIO_PIN_BT_WAKEUP, /* bt_power */ cbPIO_PIN_BT_ENABLE
+              transport_driver, /* bt_power */ PG_7, PG_12
+    );
+    return hci_driver;
 }
