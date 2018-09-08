@@ -27,6 +27,7 @@
 #include "hci_mbed_os_adaptation.h"
 #include "H4TransportDriver.h"
 
+
 static const uint8_t service_pack [] = {
 	    /*0x01,0x36,0xff,0x04,0xc0,0xc6,0x2d,0x00,*/
 	    0x01,0x37,0xfe,0x02,0x08,0x20,
@@ -4115,7 +4116,8 @@ static const uint8_t service_pack [] = {
 	    0x01, 0x82, 0xfd, 0x0c, 0x0b, 0xd3, 0xdc, 0xe5, 0xee, 0xf7, 0x00, 0x0a, 0x14, 0x3f, 0xff, 0x00,
 	    0x01, 0x82, 0xfd, 0x0c, 0x0c, 0xd3, 0xdc, 0xe5, 0xee, 0xf7, 0x00, 0x0a, 0x14, 0x3f, 0xff, 0x00,
 	    0x01, 0x87, 0xfd, 0x0a, 0x05, 0x05, 0x05, 0x05, 0x05, 0x04, 0x05, 0x04, 0x04, 0x04,
-	    0x01, 0xfb, 0xfd, 0x07, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01};
+	    0x01, 0xfb, 0xfd, 0x07, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01,
+        0x01, 0x06, 0xfc, 0x06, 0xd4, 0xca, 0x6e, 0x70, 0x48, 0xa5};   // BD Address setting need to implement API for it letter
 
 #define HCI_RESET_RAND_CNT        4
 
@@ -4150,10 +4152,10 @@ namespace odin_w2 {
 
 class HCIDriver : public cordio::CordioHCIDriver {
 public:
-    HCIDriver(cordio::CordioHCITransportDriver& transport_driver, PinName shutdown, PinName hci_rts) :
+    HCIDriver(cordio::CordioHCITransportDriver& transport_driver, PinName shutdown_name, PinName hci_rts_name) :
         cordio::CordioHCIDriver(transport_driver),
-        shutdown(shutdown, 0),
-        hci_rts(hci_rts, 0),
+        shutdown(shutdown_name, 0),
+        hci_rts(hci_rts_name, 0),
         service_pack_index(0),
         service_pack_transfered(false) {
     };
@@ -4187,7 +4189,7 @@ private:
 
     void ack_service_pack_command(uint16_t opcode, uint8_t* msg) {
         uint16_t cmd_opcode = (service_pack[service_pack_index + 2] << 8) | service_pack[service_pack_index + 1];
-
+        static int set_address = TRUE;
         if (cmd_opcode != opcode)  {
             // DO something in case of error
             while (true);
@@ -4201,7 +4203,13 @@ private:
         } else {
             service_pack_transfered = true;
             /* send an HCI Reset command to start the sequence */
-            HciResetCmd();
+            if(set_address == TRUE)
+            {
+                // setAddress();
+            }else
+            {
+                HciResetCmd();
+            }
         }
     }
 
@@ -4255,13 +4263,13 @@ private:
 
 void ble::vendor::odin_w2::HCIDriver::do_initialize()
 {
-    shutdown = 0;
-    wait_ms(100);
-    // init_32k();
-    wait_ms(20);
-    shutdown = 1;
-    hci_rts = 0;
-    wait_ms(500);
+    hci_rts =  1;           // Flow Control is off
+    
+    shutdown = 1;           // BT Power is ON
+    wait_ms(1000);
+    
+    hci_rts = 0;            // Flow Control is on
+    
 }
 
 void ble::vendor::odin_w2::HCIDriver::do_terminate()
@@ -4441,7 +4449,7 @@ ble::vendor::cordio::CordioHCIDriver& ble_cordio_get_hci_driver() {
     );
     static ble::vendor::odin_w2::HCIDriver hci_driver(
     //        transport_driver, /* host wake */ cbPIO_PIN_BT_HOST_WAKEUP, /* device wake */ cbPIO_PIN_BT_WAKEUP, /* bt_power */ cbPIO_PIN_BT_ENABLE
-            transport_driver, /* bt_power */ PG_7, PG_12
+            transport_driver, /* bt_power */ PG_7, /* rts */ PG_12
 );
     return hci_driver;
 }
