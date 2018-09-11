@@ -2341,6 +2341,13 @@
         "device_name": "STM32F439ZI",
         "public": false,
         "bootloader_supported": true,
+        "config": {
+            "BLE_STACK_CORDIO": {
+                "help": "It should be set to true to enable Cordio stack else ODIN own stack/driver would be enable on default",
+                "value": false,
+                "macro_name": "BLE_STACK_CORDIO"
+            }
+        },
         "overrides": {
             "network-default-interface-type": "WIFI"
         }
