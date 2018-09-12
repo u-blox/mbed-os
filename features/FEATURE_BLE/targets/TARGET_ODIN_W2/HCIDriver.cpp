@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include "hci_mbed_os_adaptation.h"
 #include "H4TransportDriver.h"
+#include "hci_defines_vendor_specific.h"
 
 
 static const uint8_t service_pack [] = {
@@ -4116,35 +4117,11 @@ static const uint8_t service_pack [] = {
 	    0x01, 0x82, 0xfd, 0x0c, 0x0b, 0xd3, 0xdc, 0xe5, 0xee, 0xf7, 0x00, 0x0a, 0x14, 0x3f, 0xff, 0x00,
 	    0x01, 0x82, 0xfd, 0x0c, 0x0c, 0xd3, 0xdc, 0xe5, 0xee, 0xf7, 0x00, 0x0a, 0x14, 0x3f, 0xff, 0x00,
 	    0x01, 0x87, 0xfd, 0x0a, 0x05, 0x05, 0x05, 0x05, 0x05, 0x04, 0x05, 0x04, 0x04, 0x04,
-	    0x01, 0xfb, 0xfd, 0x07, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01,
-        0x01, 0x06, 0xfc, 0x06, 0xd4, 0xca, 0x6e, 0x70, 0x48, 0xa5};   // BD Address setting need to implement API for it letter
+	    0x01, 0xfb, 0xfd, 0x07, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01};
 
 #define HCI_RESET_RAND_CNT        4
-
-/**
- * Contain description of the memory pool used by the Cordio stack.
-   this is redundant need to be kicked off
- */
-struct buf_pool_desc_t {
-    /**
-     * Create a new memory pool description
-     * @param buffer the Buffer used by the memory pool.
-     * @param pool_desc How the memory is split
-     */
-    template<size_t BufferSize, size_t PoolCount>
-    buf_pool_desc_t(
-        uint8_t (&buffer)[BufferSize],
-        const wsfBufPoolDesc_t (&pool_desc)[PoolCount]
-    ) : buffer_memory(buffer), buffer_size(BufferSize),
-        pool_description(pool_desc), pool_count(PoolCount)
-    {
-    }
-
-    uint8_t* buffer_memory;         /// Pointer to the buffer memory
-    size_t buffer_size;             /// Size of the buffer
-    const wsfBufPoolDesc_t* pool_description;   /// Pointer to the first element describing the pool
-    size_t pool_count;      /// Number of pools
-};
+extern void cbCordio_Btinit(void);
+uint16_t cmd_opcode;
 
 namespace ble {
 namespace vendor {
@@ -4177,7 +4154,7 @@ private:
 
     void send_service_pack_command(void) {
         uint16_t cmd_len = service_pack[service_pack_index + HCI_CMD_HDR_LEN];
-        uint16_t cmd_opcode = (service_pack[service_pack_index + 2] << 8) | service_pack[service_pack_index + 1];
+        cmd_opcode = (service_pack[service_pack_index + 2] << 8) | service_pack[service_pack_index + 1];
         uint8_t *pBuf = hciCmdAlloc(cmd_opcode, cmd_len);
         if (pBuf) {
             memcpy(pBuf, service_pack + service_pack_index + 1, cmd_len + HCI_CMD_HDR_LEN);
@@ -4188,8 +4165,6 @@ private:
     }
 
     void ack_service_pack_command(uint16_t opcode, uint8_t* msg) {
-        uint16_t cmd_opcode = (service_pack[service_pack_index + 2] << 8) | service_pack[service_pack_index + 1];
-        static int set_address = TRUE;
         if (cmd_opcode != opcode)  {
             // DO something in case of error
             while (true);
@@ -4198,16 +4173,17 @@ private:
         // update service pack index
         service_pack_index += (1 + HCI_CMD_HDR_LEN + service_pack[service_pack_index + HCI_CMD_HDR_LEN]);
 
+
         if (service_pack_index < sizeof(service_pack)) {
             send_service_pack_command();
         } else {
-            service_pack_transfered = true;
             /* send an HCI Reset command to start the sequence */
-            if(set_address == TRUE)
+            if(cmd_opcode == 0xFDFB) // this needs improvement can be based on counter rather than last sent command
             {
-                // setAddress();
+                // to be handled for BD address setting
             } else
             {
+                service_pack_transfered = true;
                 HciResetCmd();
             }
         }
@@ -4272,6 +4248,7 @@ void ble::vendor::odin_w2::HCIDriver::do_initialize()
     
     hci_rts = 0;            // Flow Control is on
     
+    cbCordio_Btinit();
 }
 
 void ble::vendor::odin_w2::HCIDriver::do_terminate()
