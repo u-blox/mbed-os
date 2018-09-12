@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
 #include "CordioBLE.h"
-#include "mbed.h"
 #include "CordioHCIDriver.h"
-#include "hci_api.h"
-#include "hci_cmd.h"
-#include "hci_core.h"
 #include "bstream.h"
 #include "wsf_buf.h"
 #include <stdbool.h>
 #include "hci_mbed_os_adaptation.h"
 #include "H4TransportDriver.h"
-#include "hci_defines_vendor_specific.h"
+#include "hci_cmd_vendor_spec.h"
 
 
 static const uint8_t service_pack [] = {
@@ -4136,7 +4131,7 @@ public:
         service_pack_index(0),
         service_pack_transfered(false) {
     };
-    
+
     virtual void do_initialize();
 
     virtual void do_terminate();
@@ -4180,7 +4175,8 @@ private:
             /* send an HCI Reset command to start the sequence */
             if(cmd_opcode == 0xFDFB) // this needs improvement can be based on counter rather than last sent command
             {
-                // to be handled for BD address setting
+            	vs_cmd_writeBdAddress();
+            	cmd_opcode = HCID_CC_TI_WRITE_BD_ADDR;
             } else
             {
                 service_pack_transfered = true;
@@ -4240,21 +4236,21 @@ private:
 void ble::vendor::odin_w2::HCIDriver::do_initialize()
 {
     hci_rts =  1;           // Flow Control is off
-    
+
     shutdown = 0;           // BT Power is ON
     wait_ms(20);
     shutdown = 1;           // BT Power is ON
     wait_ms(500);
-    
+
     hci_rts = 0;            // Flow Control is on
-    
+
     cbCordio_Btinit();
 }
 
 void ble::vendor::odin_w2::HCIDriver::do_terminate()
 {
-    
-    
+
+
 }
 
 void ble::vendor::odin_w2::HCIDriver::start_reset_sequence()
@@ -4285,6 +4281,21 @@ void ble::vendor::odin_w2::HCIDriver::handle_reset_sequence(uint8_t *pMsg)
         switch (opcode)
         {
             case HCI_OPCODE_RESET:
+                /* bt timing and settling time configurations */
+                vs_cmd_fast_clk_config(0x01, 0x00001388, 0x000007d0, 0xff, 0xff, 0x04, 0xff, 0xff, 0xff, 0xfa, 0x00, 0x00, 0x42);
+                break;
+
+            case HCID_CC_TI_FAST_CLOCK_CONFIG_BTIP:
+                /* setting retransmission, inactivity and rts pulse width for Bt */
+                vs_cmd_ti_ll_pars(80, 400, 150);
+                break;
+
+            case HCID_CC_TI_HCILL_PARS_CFG:
+                /* sleep modes and wake up configurations */
+                vs_cmd_sleep_prot_config(1, 0/*1*/, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0);
+                break;
+
+            case HCID_CC_TI_SLEEP_PROTOCOLS_CFG:
                 /* initialize rand command count */
                 randCnt = 0;
 
