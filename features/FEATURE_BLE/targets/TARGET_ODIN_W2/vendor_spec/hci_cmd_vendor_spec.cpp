@@ -18,6 +18,7 @@
 #include "stdint.h"
 #include "hci_cmd_vendor_spec.h"
 
+extern void cbCordio_Retreive_Btaddr(cb_uint8 *BdAddress);
 /*=============================================================================
  * INTERFACE ROUTINES
  *=============================================================================
@@ -28,8 +29,11 @@
 /* Vendor Specific Commands need to be implemented in separate file */
 void vs_cmd_writeBdAddress(void)
 {
-	uint8_t		Bt_Address[] = {0xd4, 0xca, 0x6e, 0x70, 0x4e, 0x3c};	// (TODO) This needs to come from app
-	uint8_t 	*packet = hciCmdAlloc(HCID_CC_TI_WRITE_BD_ADDR, 6);
+	uint8_t		Bt_Address[6];
+	uint8_t 	*packet = NULL;
+
+	cbCordio_Retreive_Btaddr(Bt_Address); // Get Bt address from hardware
+	packet = hciCmdAlloc(HCID_CC_TI_WRITE_BD_ADDR, 6);
 	if (packet) {
 		memcpy(packet +  HCI_CMD_HDR_LEN, Bt_Address, 6);
 		hciCmdSend(packet);
