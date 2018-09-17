@@ -22,6 +22,8 @@
 #include "UbloxWiFiSoftAPInterface.h"
 #endif
 
+#include "UbloxWiFiConfigInterface.h"
+
 #include "mbed.h"
 #include "netsocket/WiFiAccessPoint.h"
 #include "netsocket/EMACInterface.h"
@@ -29,6 +31,7 @@
 #include "lwip/netif.h"
 #include "rtos.h"
 #include "cb_wlan.h"
+#include "odin_drv_conf.h"
 #include "wifi_emac.h"
 
 #define ODIN_WIFI_MAX_MAC_ADDR_STR  (18)
@@ -49,7 +52,7 @@ struct wlan_scan_indication_s;
 #ifdef DEVICE_WIFI_AP
 class OdinWiFiInterface : public WiFiInterface, public UbloxWiFiSoftAPInterface, public EMACInterface
 #else
-class OdinWiFiInterface : public WiFiInterface, public EMACInterface
+class OdinWiFiInterface : public WiFiInterface, public EMACInterface, public UbloxWiFiConfigInterface
 #endif
 {
 public:
@@ -141,6 +144,22 @@ public:
      */
     virtual nsapi_error_t set_timeout(int ms);
 
+    /** Get general settings and tuning parameters
+    *
+    *
+    *  @param setting setting to read.
+    *  @return parameter value
+    */
+    virtual unsigned int get_config(void *setting);
+
+
+    /**
+    * Set general tuning parameter.
+    *
+    * @param setting setting to modify.
+    * @param value value to set.
+    */
+    virtual void set_config(void *setting, cb_uint32 value);
 #ifdef DEVICE_WIFI_AP
 
     /** Set IP config for access point
@@ -325,6 +344,9 @@ private:
 
     void handle_wlan_status_ap_up();
     void handle_wlan_status_ap_down();
+
+    unsigned int wlan_get_gParams(cbTARGET_ConfigParams setting);
+    void wlan_set_gParams(cbTARGET_ConfigParams setting, cb_uint32 value);
 
     void init(bool debug);
     nsapi_error_t wlan_set_channel(uint8_t channel);
