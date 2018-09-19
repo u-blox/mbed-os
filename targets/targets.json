@@ -2342,10 +2342,10 @@
         "public": false,
         "bootloader_supported": true,
         "config": {
-            "BLE_STACK_CORDIO": {
-                "help": "It should be set to true to enable Cordio stack else ODIN own stack/driver would be enable on default",
+            "BLE_STACK_UBX": {
+                "help": "It should be set to true to enable ublox ODIN own stack/driver rather than CORDIO",
                 "value": false,
-                "macro_name": "BLE_STACK_CORDIO"
+                "macro_name": "BLE_STACK_UBX"
             }
         },
         "overrides": {
