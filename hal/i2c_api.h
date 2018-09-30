@@ -75,7 +75,9 @@ extern "C" {
  *
  *  @param obj  The I2C object
  */
+#if TARGET_UBLOX_EVK_NINA_B1
 void i2c_disable_driver_instance(i2c_t *obj);
+#endif
 
 /** Initialize the I2C peripheral. It sets the default parameters for I2C
  *  peripheral, and configures its specifieds pins.

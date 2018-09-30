@@ -156,7 +156,9 @@ public:
      */
     ~I2C()
     {
+#if TARGET_UBLOX_EVK_NINA_B1
         i2c_disable_driver_instance(&_i2c);
+#endif
     }
 
 #if DEVICE_I2C_ASYNCH
