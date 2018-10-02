@@ -36,7 +36,7 @@
 #include "utest.h"
 
 #include "mbed.h"
-
+#include "AT_CellularPower.h"
 #include "CellularDevice.h"
 #include "../../cellular_tests_common.h"
 #include CELLULAR_STRINGIFY(CELLULAR_DEVICE.h)
