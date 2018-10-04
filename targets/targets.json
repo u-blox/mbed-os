@@ -4342,5 +4342,26 @@
         "device_name": "TMPM3H6FWFG",
         "detect_code": ["7012"],
         "release_versions": ["5"]
+    },
+    "AQ_NRG": {
+        "inherits": ["UBLOX_EVK_NINA_B1"],
+        "labels_remove": ["SOFTDEVICE_COMMON", "SOFTDEVICE_S140_FULL"],
+        "release_versions": ["2", "5"],
+        "device_has_add": ["STDIO_MESSAGES"],
+        "device_name": "nRF52832_xxAA",
+        "MERGE_BOOTLOADER": false,
+        "MERGE_SOFTDEVICE": false,
+        "config": {
+            "modem_is_on_board": {
+                "help": "Value: Tells the build system that the modem is on-board as oppose to a plug-in shield/module.",
+                "value": 1,
+                "macro_name": "MODEM_ON_BOARD"
+            },
+            "modem_data_connection_type": {
+                "help": "Value: Defines how the modem is wired up to the MCU, e.g., data connection can be a UART or USB and so forth.",
+                "value": 1,
+                "macro_name": "MODEM_ON_BOARD_UART"
+            }
+        }
     }
 }

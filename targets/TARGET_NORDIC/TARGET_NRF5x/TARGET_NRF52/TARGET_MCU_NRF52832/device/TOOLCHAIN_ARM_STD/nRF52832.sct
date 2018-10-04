@@ -9,31 +9,47 @@
   #define MBED_APP_SIZE 0x80000
 #endif
 
-/* If app_start is 0, do not set aside space for the softdevice */
-#if MBED_APP_START == 0
-  #define MBED_RAM_START  0x20000000
-  #define MBED_RAM_SIZE   0x10000
-#else
-  #define MBED_RAM_START  0x200031D0
-  #define MBED_RAM_SIZE   0xCE30
+/* Physical RAM */
+#define MBED_RAM_PHYSICAL_START 0x20000000
+#define MBED_RAM_PHYSICAL_SIZE 0x10000
+
+/* Reserved areas */
+#define MBED_RAM_SOFT_DEVICE_SIZE 0x31d0
+/* Must be at least as big as LOG_STORE_SIZE */
+#define MBED_RAM_UNINIT_AREA_SIZE ((7 * 4) + (250 * 12))
+
+/* If softdevice is present, set aside space for it */
+#if !defined(MBED_RAM_START)
+  #if defined(SOFTDEVICE_PRESENT)
+    #define MBED_RAM_START  (MBED_RAM_PHYSICAL_START + MBED_RAM_SOFT_DEVICE_SIZE)
+    #define MBED_RAM_SIZE   (MBED_RAM_PHYSICAL_SIZE - MBED_RAM_SOFT_DEVICE_SIZE)
+  #else
+    #define MBED_RAM_START  0x20000000
+    #define MBED_RAM_SIZE   0x10000
+  #endif
 #endif
 
 #define MBED_RAM0_START MBED_RAM_START
 #define MBED_RAM0_SIZE  0xDC
-#define MBED_RAM1_START (MBED_RAM_START + MBED_RAM0_SIZE)
-#define MBED_RAM1_SIZE  (MBED_RAM_SIZE - MBED_RAM0_SIZE)
+#define MBED_RAM1_START (MBED_RAM0_START + MBED_RAM0_SIZE)
+#define MBED_RAM1_SIZE  MBED_RAM_UNINIT_AREA_SIZE
+#define MBED_RAM2_START (MBED_RAM1_START + MBED_RAM1_SIZE)
+#define MBED_RAM2_SIZE  (MBED_RAM_SIZE - MBED_RAM0_SIZE - MBED_RAM1_SIZE)
 
 LR_IROM1 MBED_APP_START MBED_APP_SIZE {
   ER_IROM1 MBED_APP_START MBED_APP_SIZE {
-   *.o (RESET, +First)
-   *(InRoot$$Sections) 
-   .ANY (+RO)
+    *.o (RESET, +First)
+    *(InRoot$$Sections) 
+    .ANY (+RO)
   }
 
   RW_IRAM0 MBED_RAM0_START UNINIT MBED_RAM0_SIZE { ;no init section
-        *(*nvictable)
+    *(*nvictable)
   }
-  RW_IRAM1 MBED_RAM1_START MBED_RAM1_SIZE {
-   .ANY (+RW +ZI)
+  RW_IRAM1 MBED_RAM1_START UNINIT MBED_RAM1_SIZE { ;no init section
+    *(*noinit)
+  }
+  RW_IRAM2 MBED_RAM2_START MBED_RAM2_SIZE {
+    .ANY (+RW +ZI)
   }
 }
