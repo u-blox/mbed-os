@@ -25,7 +25,7 @@
 #include <stdbool.h>
 #include "hci_mbed_os_adaptation.h"
 #include "H4TransportDriver.h"
-#include "HCIDriver.h"
+#include "OdinCordioInterface.h"
 
 namespace ble {
 namespace vendor {
