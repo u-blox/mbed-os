@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include "mbed.h"
+#include "cb_main.h"
 
 /*------------------------------------------------------------------------------
 *  Vendor specific commands opcode 
@@ -26,28 +27,29 @@
 */
 
 /* Command to write hardware address to BT device */
-#define HCID_CC_TI_WRITE_BD_ADDR            0xFC06
+#define HCID_VS_WRITE_BD_ADDR               0xFC06
 
 /* It configures clk parameters for fast and slow clock */
-#define HCID_CC_TI_FAST_CLOCK_CONFIG_BTIP   0xFD1C
+#define HCID_VS_FAST_CLOCK_CONFIG_BTIP      0xFD1C
 
-/* Command to control behavior of HCILL deep-sleep protocol */
-#define HCID_CC_TI_HCILL_PARS_CFG           0xFD2B
+/* Command to configure stand-by behavior */
+#define HCID_VS_HCILL_PARS_CFG              0xFD2B
 
 /* Command to configures the sleep mode */
-#define HCID_CC_TI_SLEEP_PROTOCOLS_CFG      0xFD0C
+#define HCID_VS_SLEEP_PROTOCOLS_CFG         0xFD0C
+
+/* Command to Update BT device baudrate */
+#define HCID_VS_UPDATE_UART_BAUD_RATE       0xFF36
 
 #define HCI_RESET_RAND_CNT                  4
-
 
 /*------------------------------------------------------------------------------
 * External variables and functions 
 * ------------------------------------------------------------------------------
 */
-extern const unsigned char  g_ServicePack[];
-extern "C" unsigned int getSizeOfServicePack();
 
-extern void cbCordio_Btinit(void);
-extern void send_hci_vs_cmd(uint16_t opcode);
+uint32_t        service_pack_size;
+char*           OdinServicePack ;
+cb_vs_cmd       send_hci_vs_cmd ;
 
 #endif /* ODIN_CORDIO_INTF_H */

@@ -58,11 +58,11 @@ class HCIDriver : public cordio::CordioHCIDriver {
         }
 
         void send_service_pack_command(void) {
-            uint16_t cmd_len = g_ServicePack[service_pack_index + HCI_CMD_HDR_LEN];
-            cmd_opcode_ack_expected = (g_ServicePack[service_pack_index + 2] << 8) | g_ServicePack[service_pack_index + 1];
+            uint16_t cmd_len = OdinServicePack[service_pack_index + HCI_CMD_HDR_LEN];
+            cmd_opcode_ack_expected = (OdinServicePack[service_pack_index + 2] << 8) | OdinServicePack[service_pack_index + 1];
             uint8_t *pBuf = hciCmdAlloc(cmd_opcode_ack_expected, cmd_len);
             if (pBuf) {
-                memcpy(pBuf, g_ServicePack + service_pack_index + 1, cmd_len + HCI_CMD_HDR_LEN);
+                memcpy(pBuf, OdinServicePack + service_pack_index + 1, cmd_len + HCI_CMD_HDR_LEN);
                 hciCmdSend(pBuf);
             }
             else {
@@ -75,20 +75,20 @@ class HCIDriver : public cordio::CordioHCIDriver {
             MBED_ASSERT (cmd_opcode_ack_expected == opcode); 
 
             // update service pack index
-            service_pack_index += (1 + HCI_CMD_HDR_LEN + g_ServicePack[service_pack_index + HCI_CMD_HDR_LEN]);
+            service_pack_index += (1 + HCI_CMD_HDR_LEN + OdinServicePack[service_pack_index + HCI_CMD_HDR_LEN]);
 
-            if (service_pack_index < getSizeOfServicePack()) {
+            if (service_pack_index < service_pack_size) {
                 send_service_pack_command();
             }
-            else if (opcode == HCID_CC_TI_WRITE_BD_ADDR) {
+            else if (opcode == HCID_VS_WRITE_BD_ADDR) {
                /* send an HCI Reset command to start the sequence */
                 HciResetCmd();
                 service_pack_transfered = true;
             }
             else {
                 /* send BT device hardware address write command */
-                send_hci_vs_cmd(HCID_CC_TI_WRITE_BD_ADDR);
-                cmd_opcode_ack_expected = HCID_CC_TI_WRITE_BD_ADDR;
+                send_hci_vs_cmd(HCID_VS_WRITE_BD_ADDR);
+                cmd_opcode_ack_expected = HCID_VS_WRITE_BD_ADDR;
             }
         }
 
@@ -139,6 +139,8 @@ class HCIDriver : public cordio::CordioHCIDriver {
 
 void ble::vendor::odin_w2::HCIDriver::do_initialize()
 {
+    odin_cordio_callback    bt_callback_cordio;
+
     hci_rts = 1;            // Flow Control is OFF
 
     shutdown = 0;           // BT Power is OFF
@@ -148,7 +150,10 @@ void ble::vendor::odin_w2::HCIDriver::do_initialize()
 
     hci_rts = 0;            // Flow Control is ON
 
-    cbCordio_Btinit();
+    cbCordio_Btinit(&bt_callback_cordio);
+    OdinServicePack = bt_callback_cordio.Service_pack;
+    send_hci_vs_cmd = bt_callback_cordio.vs_command_callback;
+    service_pack_size = bt_callback_cordio.service_pack_size;
 }
 
 void ble::vendor::odin_w2::HCIDriver::do_terminate()
@@ -158,7 +163,9 @@ void ble::vendor::odin_w2::HCIDriver::do_terminate()
 
 void ble::vendor::odin_w2::HCIDriver::start_reset_sequence()
 {
-    start_service_pack_transfert();
+    /* Update baudrate of BT to speed up setup time */
+    send_hci_vs_cmd(HCID_VS_UPDATE_UART_BAUD_RATE);
+
 }
 
 void ble::vendor::odin_w2::HCIDriver::handle_reset_sequence(uint8_t *pMsg)
@@ -175,6 +182,13 @@ void ble::vendor::odin_w2::HCIDriver::handle_reset_sequence(uint8_t *pMsg)
         BSTREAM_TO_UINT16(opcode, pMsg);
         pMsg++;                   /* skip status */
 
+        if (opcode == HCID_VS_UPDATE_UART_BAUD_RATE)
+        {
+            update_uart_baud_rate();
+            start_service_pack_transfert();
+            return;
+        }
+
         if (service_pack_transfered == false) {
             ack_service_pack_command(opcode, pMsg);
             return;
@@ -185,20 +199,20 @@ void ble::vendor::odin_w2::HCIDriver::handle_reset_sequence(uint8_t *pMsg)
 
             case HCI_OPCODE_RESET:
                 /* Send (fast and slow) clock configuration command */
-                send_hci_vs_cmd(HCID_CC_TI_FAST_CLOCK_CONFIG_BTIP);
+                send_hci_vs_cmd(HCID_VS_FAST_CLOCK_CONFIG_BTIP);
                 break;
 
-            case HCID_CC_TI_FAST_CLOCK_CONFIG_BTIP:
+            case HCID_VS_FAST_CLOCK_CONFIG_BTIP:
                 /* Send deep-sleep behavior control command (setting retransmission, inactivity and rts pulse width for Bt) */
-                send_hci_vs_cmd(HCID_CC_TI_HCILL_PARS_CFG);
+                send_hci_vs_cmd(HCID_VS_HCILL_PARS_CFG);
                 break;
 
-            case HCID_CC_TI_HCILL_PARS_CFG:
+            case HCID_VS_HCILL_PARS_CFG:
                 /* Send sleep mode configuration command */
-                send_hci_vs_cmd(HCID_CC_TI_SLEEP_PROTOCOLS_CFG);
+                send_hci_vs_cmd(HCID_VS_SLEEP_PROTOCOLS_CFG);
                 break;
 
-            case HCID_CC_TI_SLEEP_PROTOCOLS_CFG:
+            case HCID_VS_SLEEP_PROTOCOLS_CFG:
                 /* initialize rand command count */
                 randCnt = 0;
 
