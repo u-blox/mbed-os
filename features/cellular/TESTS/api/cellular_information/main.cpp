@@ -87,6 +87,7 @@ static void test_information_interface()
                ((((AT_CellularInformation *)info)->get_device_error().errType == 3) &&    // 3 == CME error from the modem
                (((AT_CellularInformation *)info)->get_device_error().errCode == 4)));     // 4 == "operation not supported"
 
+#if !defined(TARGET_UBLOX_C027) && !defined(TARGET_UBLOX_C030_R410M)
     nsapi_error_t err = info->get_serial_number(buf, kbuf_size, CellularInformation::IMEI);
     TEST_ASSERT(err == NSAPI_ERROR_UNSUPPORTED || err == NSAPI_ERROR_OK);
 
@@ -95,6 +96,7 @@ static void test_information_interface()
 
     err = info->get_serial_number(buf, kbuf_size, CellularInformation::SVN);
     TEST_ASSERT(err == NSAPI_ERROR_UNSUPPORTED || err == NSAPI_ERROR_OK);
+#endif
 
     cellular.get_device()->close_information();
 
