@@ -43,13 +43,4 @@
 
 #define HCI_RESET_RAND_CNT                  4
 
-/*------------------------------------------------------------------------------
-* External variables and functions 
-* ------------------------------------------------------------------------------
-*/
-
-uint32_t        service_pack_size;
-char*           OdinServicePack ;
-cb_vs_cmd       send_hci_vs_cmd ;
-
 #endif /* ODIN_CORDIO_INTF_H */

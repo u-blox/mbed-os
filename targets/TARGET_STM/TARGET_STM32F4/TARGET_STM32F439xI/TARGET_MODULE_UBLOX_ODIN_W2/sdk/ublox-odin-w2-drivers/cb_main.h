@@ -57,13 +57,13 @@ typedef struct
 
 #if (BLE_STACK_UBX != true)
 
-typedef void (*cb_vs_cmd)(uint16_t opcode);
+typedef void (*vs_cmd_send_t)(uint16_t opcode);
 
 typedef struct {
-    cb_vs_cmd   vs_command_callback;
-    char *      Service_pack;
-    uint32_t    service_pack_size;
-}odin_cordio_callback;
+    vs_cmd_send_t   vs_command_callback;
+    char            *Service_pack;
+    uint32_t        service_pack_size;
+} cordio_callback_s;
 
 #endif /* !BLE_STACK_UBX */
 
@@ -161,7 +161,7 @@ extern void cbMAIN_dispatchEventQueue(void);
 *
 * @return void
 */
-void cbCordio_Btinit(odin_cordio_callback *bt_callback_cordio);
+void cbCordio_Btinit(cordio_callback_s *bt_callback_cordio);
 
 /**
 * Get BT address saved in OTP memory and provide it to stack for assignment.

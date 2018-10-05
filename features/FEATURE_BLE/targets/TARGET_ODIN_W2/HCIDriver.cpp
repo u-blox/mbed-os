@@ -126,11 +126,15 @@ class HCIDriver : public cordio::CordioHCIDriver {
             }
         }
 
-        DigitalOut shutdown;                // power/shutdown pin for bt device
-        DigitalOut hci_rts;                 // request to sent pin
-        size_t service_pack_index;          // Index of command to be recently sent over hci
-        bool service_pack_transfered;       // Flag to notify if service pack is completely transferred or not
-        uint16_t cmd_opcode_ack_expected;   // Command against which acknowledgment is expected
+        DigitalOut      shutdown;                       // power/shutdown pin for bt device
+        DigitalOut      hci_rts;                        // request to sent pin
+        size_t          service_pack_index;             // Index of command to be recently sent over hci
+        bool            service_pack_transfered;        // Flag to notify if service pack is completely transferred or not
+        uint16_t        cmd_opcode_ack_expected;        // Command against which acknowledgment is expected
+        uint32_t        service_pack_size;              // size of service pack
+        char*           OdinServicePack ;
+        vs_cmd_send_t   send_hci_vs_cmd ;
+
 };
 
 } // namespace odin_w2
@@ -139,7 +143,7 @@ class HCIDriver : public cordio::CordioHCIDriver {
 
 void ble::vendor::odin_w2::HCIDriver::do_initialize()
 {
-    odin_cordio_callback    bt_callback_cordio;
+    cordio_callback_s    callback;
 
     hci_rts = 1;            // Flow Control is OFF
 
@@ -150,10 +154,12 @@ void ble::vendor::odin_w2::HCIDriver::do_initialize()
 
     hci_rts = 0;            // Flow Control is ON
 
-    cbCordio_Btinit(&bt_callback_cordio);
-    OdinServicePack = bt_callback_cordio.Service_pack;
-    send_hci_vs_cmd = bt_callback_cordio.vs_command_callback;
-    service_pack_size = bt_callback_cordio.service_pack_size;
+    /* ODIN ble driver initialization function  */
+    cbCordio_Btinit(&callback);
+
+    OdinServicePack = callback.Service_pack;
+    send_hci_vs_cmd = callback.vs_command_callback;
+    service_pack_size = callback.service_pack_size;
 }
 
 void ble::vendor::odin_w2::HCIDriver::do_terminate()
