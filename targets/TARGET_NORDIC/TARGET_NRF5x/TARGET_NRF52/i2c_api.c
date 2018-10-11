@@ -532,8 +532,10 @@ void i2c_disable_driver_instance(i2c_t *obj)
 
     int instance = config->instance;
 
-    nrf_drv_twi_disable(&nordic_nrf5_instance[instance]);
-    nrf_drv_twi_uninit(&nordic_nrf5_instance[instance]);
+    if (nordic_nrf5_instance[instance].reg.p_twi->ENABLE) {
+        nrf_drv_twi_disable(&nordic_nrf5_instance[instance]);
+        nrf_drv_twi_uninit(&nordic_nrf5_instance[instance]);
+    }
 }
 
 /**
