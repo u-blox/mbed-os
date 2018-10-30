@@ -35,6 +35,10 @@ typedef enum target_config_params_e {
     ODIN_CFG_GET_DTIM_ENABLE,                                //!< Get DTIM enable 0, disable 1 enable
     ODIN_CFG_SET_SLEEP_TIMEOUT,                              //!< Set enter power save entry delay (in ms). Power save mode will be entered only if there no activity during this delay
     ODIN_CFG_GET_SLEEP_TIMEOUT,                              //!< Get enter power save entry delay (in ms). Power save mode will be entered only if there no activity during this delay
+    ODIN_CFG_SET_GOOD_RSSI_YIELD_TMO,
+    ODIN_CFG_GET_GOOD_RSSI_YIELD_TMO,
+    ODIN_CFG_SET_BAD_RSSI_YIELD_TMO,
+    ODIN_CFG_GET_BAD_RSSI_YIELD_TMO,
     ODIN_CFG_LAST,
 } target_config_params_e;
 
