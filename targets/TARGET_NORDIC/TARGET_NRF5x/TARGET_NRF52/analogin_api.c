@@ -87,7 +87,7 @@ void analogin_init(analogin_t *obj, PinName pin)
         .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
         .gain       = NRF_SAADC_GAIN1_4,
         .reference  = NRF_SAADC_REFERENCE_VDD4,
-        .acq_time   = NRF_SAADC_ACQTIME_10US,
+        .acq_time   = NRF_SAADC_ACQTIME_40US,
         .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
         .burst      = NRF_SAADC_BURST_DISABLED,
         .pin_p      = input,
