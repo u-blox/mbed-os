@@ -439,6 +439,14 @@ void UBLOX_AT_CellularStack::clear_socket(CellularSocket *socket)
 const char *UBLOX_AT_CellularStack::get_ip_address()
 {
     _at.lock();
+#ifdef TARGET_UBLOX_C030_R410M
+    _at.cmd_start("AT+CGPADDR=1");
+    _at.cmd_stop();
+
+    _at.resp_start("+CGPADDR:");
+    if (_at.info_resp()) {
+        _at.skip_param();
+#else
     _at.cmd_start("AT+UPSND=" PROFILE ",0");
     _at.cmd_stop();
 
@@ -446,14 +454,14 @@ const char *UBLOX_AT_CellularStack::get_ip_address()
     if (_at.info_resp()) {
         _at.skip_param();
         _at.skip_param();
-        int len = _at.read_string(_ip, NSAPI_IPv4_SIZE - 1);
+#endif
+        int len = _at.read_string(_ip, NSAPI_IPv4_SIZE-1);
         if (len == -1) {
             _ip[0] = '\0';
             _at.unlock();
             // no IPV4 address, return
             return NULL;
         }
-
         // in case stack type is not IPV4 only, try to look also for IPV6 address
         if (_stack_type != IPV4_STACK) {
             len = _at.read_string(_ip, PDP_IPV6_SIZE - 1);
