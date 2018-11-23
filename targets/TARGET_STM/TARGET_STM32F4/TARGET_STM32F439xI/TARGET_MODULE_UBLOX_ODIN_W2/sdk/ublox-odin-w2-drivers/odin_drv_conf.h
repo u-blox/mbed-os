@@ -39,6 +39,10 @@ typedef enum target_config_params_e {
     ODIN_CFG_GET_GOOD_RSSI_YIELD_TMO,
     ODIN_CFG_SET_BAD_RSSI_YIELD_TMO,
     ODIN_CFG_GET_BAD_RSSI_YIELD_TMO,
+	ODIN_CFG_SET_PMF_STA,
+	ODIN_CFG_GET_PMF_STA,
+	ODIN_CFG_SET_FT_MODE,
+	ODIN_CFG_GET_FT_MODE,
     ODIN_CFG_LAST,
 } target_config_params_e;
 

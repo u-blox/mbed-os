@@ -261,6 +261,8 @@ cbRTSL_Status cbTARGET_configure(cbTARGET_Handle* hTarget, cbTARGET_ConfigParams
 #define W_CONST_SLEEP_TIMEOUT                       (100) // Timeout in ms, 100ms timeout gives almost same throughput as without power save but still low power consumption
 #define W_CONST_DEFAULT_MODULE_TYPE                 (cbWM_MODULE_UNKNOWN)
 #define W_CONST_PMF_OPTIONAL                        (cbWLAN_PMF_OPTIONAL)
+#define W_CONST_PMF_DISABLE                         (cbWLAN_PMF_DISABLE)
+#define W_CONST_PMF_REQUIRED                        (cbWLAN_PMF_REQUIRED)
 #define W_CONST_REMAIN_ON_CHANNEL                   (1) // Enabled
 #define W_CONST_DEFAULT_STA_TX_RATES                (0) // Use AP default
 #define W_CONST_GOOD_RSSI                           (55)

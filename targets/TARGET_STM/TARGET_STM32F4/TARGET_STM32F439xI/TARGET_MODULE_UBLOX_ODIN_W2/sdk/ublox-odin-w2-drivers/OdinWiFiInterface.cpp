@@ -1897,7 +1897,10 @@ static cbTARGET_ConfigParams map_odin_config(target_config_params_e parameter)
     case ODIN_CFG_GET_GOOD_RSSI_YIELD_TMO:	return cbTARGET_CFG_GET_GOOD_RSSI_YIELD_TMO;
     case ODIN_CFG_SET_BAD_RSSI_YIELD_TMO:	return cbTARGET_CFG_SET_BAD_RSSI_YIELD_TMO;
     case ODIN_CFG_GET_BAD_RSSI_YIELD_TMO:	return cbTARGET_CFG_GET_BAD_RSSI_YIELD_TMO;
-
+	case ODIN_CFG_SET_PMF_STA:				return cbTARGET_CFG_SET_PMF_STA;
+	case ODIN_CFG_GET_PMF_STA:				return cbTARGET_CFG_GET_PMF_STA;
+	case ODIN_CFG_SET_FT_MODE:				return cbTARGET_CFG_SET_FT_MODE;
+	case ODIN_CFG_GET_FT_MODE:				return cbTARGET_CFG_GET_FT_MODE;
     default:
         MBED_ASSERT(true);
     }
