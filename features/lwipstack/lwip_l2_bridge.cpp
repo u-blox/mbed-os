@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "emac_lwip_l2_bridge.h"
+#include "lwip_l2_bridge.h"
 #include "string.h"
 #include "mbed.h"
 #include "mbed_assert.h"

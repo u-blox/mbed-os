@@ -25,7 +25,7 @@
 #include "LWIPStack.h"
 
 #if MBED_EMAC_LWIP_L2_BRIDGE
-#include "emac_lwip_l2_bridge.h"
+#include "lwip_l2_bridge.h"
 #endif
 
 #if LWIP_ETHERNET

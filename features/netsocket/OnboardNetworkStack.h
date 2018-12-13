@@ -121,7 +121,9 @@ public:
         virtual char *get_gateway(char *buf, nsapi_size_t buflen) = 0;
 
         virtual void set_broadcast_to_self(bool enabled) { }
-        virtual bool get_broadcast_to_self(void) { }
+        virtual bool get_broadcast_to_self(void) {
+            return false;
+        }
     };
 
     /** Register a network interface with the IP stack
