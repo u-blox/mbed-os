@@ -112,6 +112,10 @@ public:
 
     private:
         friend LWIP;
+        friend err_t output_from_netif_to_netifs(struct netif *net, emac_mem_buf_t *buf);
+        friend err_t output_from_local_to_netifs(emac_mem_buf_t *buf);
+        friend err_t emac_lwip_l2b_output(struct netif *netif, emac_mem_buf_t *buf);
+        friend err_t emac_lwip_l2b_input(struct netif *net, emac_mem_buf_t *buf);
 
         Interface();
 
