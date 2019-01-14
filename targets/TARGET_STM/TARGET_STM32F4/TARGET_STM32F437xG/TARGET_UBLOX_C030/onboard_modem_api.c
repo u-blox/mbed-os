@@ -29,7 +29,7 @@ static void press_power_button(int time_us)
     gpio_t gpio;
 
 #if defined(TARGET_UBLOX_C030_R41XM)
-    gpio_init_inout(&gpio, MDMPWRON, PIN_INPUT, OpenDrain, 0);
+    gpio_init_inout(&gpio, MDMPWRON, PIN_OUTPUT, OpenDrain, 0);
 #else
     gpio_init_out_ex(&gpio, MDMPWRON, 0);
 #endif
@@ -44,7 +44,7 @@ void onboard_modem_init()
 
 #if defined(TARGET_UBLOX_C030_R41XM)
     // Set the pin to high so on powerup we can set low
-    gpio_init_inout(&gpio, MDMPWRON, PIN_INPUT, OpenDrain, 1);
+    gpio_init_inout(&gpio, MDMPWRON, PIN_OUTPUT, OpenDrain, 1);
 #else
     // Take us out of reset
     gpio_init_out_ex(&gpio, MDMRST,    1);
