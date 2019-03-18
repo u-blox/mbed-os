@@ -21,6 +21,13 @@
 
 #include "wifi_emac.h"
 #include "netsocket/WiFiAccessPoint.h"
+#include "enterprise_handle.h"
+#ifdef CERT_FILE
+#include CERT_FILE
+#else
+static const char *cert_data = NULL;
+#endif
+
 
 #define ODIN_WIFI_BSSID_CACHE           	(5)
 #define ODIN_WIFI_STA_DEFAULT_CONN_TMO  	(20000)
@@ -1495,10 +1502,12 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
         const char          *passwd,
         nsapi_security_t    security)
 {
-    nsapi_error_t                   error_code = NSAPI_ERROR_OK;
-    cbRTSL_Status                   status = cbSTATUS_OK;
-    cbWLAN_CommonConnectParameters  connect_params;
+    nsapi_error_t                       error_code = NSAPI_ERROR_OK;
+    cbRTSL_Status                       status = cbSTATUS_OK;
+    cbWLAN_CommonConnectParameters      connect_params;
+    cbWLAN_EnterpriseConnectParameters  enterpriseParams;
 
+    memset(&enterpriseParams, 0, sizeof(cbWLAN_EnterpriseConnectParameters));
     memset(&connect_params, 0, sizeof(cbWLAN_CommonConnectParameters));
 
     strncpy((char*)connect_params.ssid.ssid, ssid, cbWLAN_SSID_MAX_LENGTH);
@@ -1506,34 +1515,58 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
 
     switch (security)
     {
-		case NSAPI_SECURITY_NONE:
-			cbMAIN_driverLock();
-			status = cbWLAN_connectOpen(&connect_params);
-			cbMAIN_driverUnlock();
-			break;
-		case NSAPI_SECURITY_WPA:
-		case NSAPI_SECURITY_WPA2:
-		case NSAPI_SECURITY_WPA_WPA2:
-			char                            temp_passphrase[cbWLAN_MAX_PASSPHRASE_LENGTH];
-			cbWLAN_WPAPSKConnectParameters  wpa_connect_params;
+        case NSAPI_SECURITY_NONE:
+            cbMAIN_driverLock();
+            status = cbWLAN_connectOpen(&connect_params);
+            cbMAIN_driverUnlock();
+            break;
+        case NSAPI_SECURITY_WPA:
+        case NSAPI_SECURITY_WPA2:
+        case NSAPI_SECURITY_WPA_WPA2:
+            char                            temp_passphrase[cbWLAN_MAX_PASSPHRASE_LENGTH];
+            cbWLAN_WPAPSKConnectParameters  wpa_connect_params;
 
-			memset(temp_passphrase, 0, cbWLAN_MAX_PASSPHRASE_LENGTH);
-			strncpy(temp_passphrase, passwd, cbWLAN_MAX_PASSPHRASE_LENGTH);
+            memset(temp_passphrase, 0, cbWLAN_MAX_PASSPHRASE_LENGTH);
+            strncpy(temp_passphrase, passwd, cbWLAN_MAX_PASSPHRASE_LENGTH);
 
-			cbMAIN_driverLock();
-			status = cbWLAN_Util_PSKFromPWD(temp_passphrase, connect_params.ssid, wpa_connect_params.psk.key);
+            cbMAIN_driverLock();
+            status = cbWLAN_Util_PSKFromPWD(temp_passphrase, connect_params.ssid, wpa_connect_params.psk.key);
 
-			if (status == cbSTATUS_OK) {
-				status = cbWLAN_connectWPAPSK(&connect_params, &wpa_connect_params);
-			}
-			cbMAIN_driverUnlock();
-			if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
-			break;
+            if (status == cbSTATUS_OK) {
+                status = cbWLAN_connectWPAPSK(&connect_params, &wpa_connect_params);
+            }
+            cbMAIN_driverUnlock();
+            if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
+            break;
 
-		case NSAPI_SECURITY_WEP:
-		default:
-			status = cbSTATUS_ERROR;
-			break;
+        case NSAPI_SECURITY_WEP:
+        case NSAPI_SECURITY_EAP_TLS:
+            cbMAIN_driverLock();
+            enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_EAPTLS;
+            MBED_ASSERT(cert_data != NULL); // certificate not properly initialized by application
+            status = eap_tls_conn_handler(cert_data, sizeof(cert_data), &connect_params, &enterpriseParams);
+            cbMAIN_driverUnlock();
+            break;
+
+        case NSAPI_SECURITY_LEAP:
+            cbMAIN_driverLock();
+            enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_LEAP;
+            status = cbWLAN_connectEnterprise(&connect_params, &enterpriseParams);
+            cbMAIN_driverUnlock();
+            break;
+        case NSAPI_SECURITY_PEAP:
+            cbMAIN_driverLock();
+            enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_PEAP;
+            //certLoadStatus = loadCACert(staConfig);
+
+            cbMAIN_driverUnlock();
+            //if (OK(certLoadStatus)) {
+            //status = cbWLAN_connectEnterprise(&connect_params, &enterpriseParams);
+            //}
+            break;
+    default:
+        status = cbSTATUS_ERROR;
+        break;
     }
 
     if(status != cbSTATUS_OK) {
