@@ -1548,12 +1548,6 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
             cbMAIN_driverUnlock();
             break;
 
-        case NSAPI_SECURITY_LEAP:
-            cbMAIN_driverLock();
-            enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_LEAP;
-            status = cbWLAN_connectEnterprise(&connect_params, &enterpriseParams);
-            cbMAIN_driverUnlock();
-            break;
         case NSAPI_SECURITY_PEAP:
             cbMAIN_driverLock();
             enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_PEAP;
