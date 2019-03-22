@@ -1901,20 +1901,20 @@ static bool is_valid_AP_channel(cbWLAN_Channel channel)
 static cbTARGET_ConfigParams map_odin_config(target_config_params_e parameter)
 {
     switch (parameter) {
-	case ODIN_CFG_SET_POWER_SAVE_MODE:                      return cbTARGET_CFG_SET_POWER_SAVE_MODE;//
-	case ODIN_CFG_GET_POWER_SAVE_MODE:                      return cbTARGET_CFG_GET_POWER_SAVE_MODE;//
-	case ODIN_CFG_SET_LISTEN_INTERVAL:                      return cbTARGET_CFG_SET_LISTEN_INTERVAL;//
-	case ODIN_CFG_GET_LISTEN_INTERVAL:                      return cbTARGET_CFG_GET_LISTEN_INTERVAL;//
+	case ODIN_CFG_SET_POWER_SAVE_MODE:                      return cbTARGET_CFG_SET_POWER_SAVE_MODE;
+	case ODIN_CFG_GET_POWER_SAVE_MODE:                      return cbTARGET_CFG_GET_POWER_SAVE_MODE;
+	case ODIN_CFG_SET_LISTEN_INTERVAL:                      return cbTARGET_CFG_SET_LISTEN_INTERVAL;
+	case ODIN_CFG_GET_LISTEN_INTERVAL:                      return cbTARGET_CFG_GET_LISTEN_INTERVAL;
 	case ODIN_CFG_SET_MIN_SCAN_TIME:                        return cbTARGET_CFG_SET_MIN_SCAN_TIME;
 	case ODIN_CFG_GET_MIN_SCAN_TIME:                        return cbTARGET_CFG_GET_MIN_SCAN_TIME;
 	case ODIN_CFG_SET_MAX_SCAN_TIME:                        return cbTARGET_CFG_SET_MAX_SCAN_TIME;
 	case ODIN_CFG_GET_MAX_SCAN_TIME:                        return cbTARGET_CFG_GET_MAX_SCAN_TIME;
 	case ODIN_CFG_SET_SCAN_TYPE:                            return cbTARGET_CFG_SET_SCAN_TYPE;
 	case ODIN_CFG_GET_SCAN_TYPE:                            return cbTARGET_CFG_GET_SCAN_TYPE;
-	case ODIN_CFG_SET_LISTEN_INTERVAL:                      return cbTARGET_CFG_SET_LISTEN_INTERVAL;//
-	case ODIN_CFG_GET_LISTEN_INTERVAL:                      return cbTARGET_CFG_GET_LISTEN_INTERVAL;//
-	case ODIN_CFG_SET_DTIM_ENABLE:                          return cbTARGET_CFG_SET_DTIM_ENABLE;//
-	case ODIN_CFG_GET_DTIM_ENABLE:                          return cbTARGET_CFG_GET_DTIM_ENABLE;//
+	case ODIN_CFG_SET_LISTEN_INTERVAL:                      return cbTARGET_CFG_SET_LISTEN_INTERVAL;
+	case ODIN_CFG_GET_LISTEN_INTERVAL:                      return cbTARGET_CFG_GET_LISTEN_INTERVAL;
+	case ODIN_CFG_SET_DTIM_ENABLE:                          return cbTARGET_CFG_SET_DTIM_ENABLE;
+	case ODIN_CFG_GET_DTIM_ENABLE:                          return cbTARGET_CFG_GET_DTIM_ENABLE;
 	case ODIN_CFG_SET_QOS_ENABLE:                           return cbTARGET_CFG_SET_QOS_ENABLE;
 	case ODIN_CFG_GET_QOS_ENABLE:                           return cbTARGET_CFG_GET_QOS_ENABLE;
 	case ODIN_CFG_SET_RTS_THRESHOLD:                        return cbTARGET_CFG_SET_RTS_THRESHOLD;
@@ -1937,18 +1937,18 @@ static cbTARGET_ConfigParams map_odin_config(target_config_params_e parameter)
 	case ODIN_CFG_GET_REMAIN_ON_CHANNEL:                    return cbTARGET_CFG_GET_REMAIN_ON_CHANNEL;
 	case ODIN_CFG_SET_STA_TX_RATE_MASK:                     return cbTARGET_CFG_SET_STA_TX_RATE_MASK;
 	case ODIN_CFG_GET_STA_TX_RATE_MASK:                     return cbTARGET_CFG_GET_STA_TX_RATE_MASK;
-	case ODIN_CFG_SET_RSSI_GOOD:                            return cbTARGET_CFG_SET_RSSI_GOOD;//
-	case ODIN_CFG_GET_RSSI_GOOD:                            return cbTARGET_CFG_GET_RSSI_GOOD;//
-	case ODIN_CFG_SET_RSSI_BAD:                             return cbTARGET_CFG_SET_RSSI_BAD;//
-	case ODIN_CFG_GET_RSSI_BAD:                             return cbTARGET_CFG_GET_RSSI_BAD;//
-	case ODIN_CFG_SET_SLEEP_TIMEOUT:                        return cbTARGET_CFG_SET_SLEEP_TIMEOUT;//
-	case ODIN_CFG_GET_SLEEP_TIMEOUT:                        return cbTARGET_CFG_GET_SLEEP_TIMEOUT;//
-	case ODIN_CFG_SET_GOOD_RSSI_YIELD_TMO:                  return cbTARGET_CFG_SET_GOOD_RSSI_YIELD_TMO;//
-	case ODIN_CFG_GET_GOOD_RSSI_YIELD_TMO:                  return cbTARGET_CFG_GET_GOOD_RSSI_YIELD_TMO;//
-	case ODIN_CFG_SET_BAD_RSSI_YIELD_TMO:                   return cbTARGET_CFG_SET_BAD_RSSI_YIELD_TMO;//
-	case ODIN_CFG_GET_BAD_RSSI_YIELD_TMO:                   return cbTARGET_CFG_GET_BAD_RSSI_YIELD_TMO;//
-	case ODIN_CFG_SET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT:    return cbTARGET_CFG_SET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT;//
-	case ODIN_CFG_GET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT:    return cbTARGET_CFG_GET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT;//
+	case ODIN_CFG_SET_RSSI_GOOD:                            return cbTARGET_CFG_SET_RSSI_GOOD;
+	case ODIN_CFG_GET_RSSI_GOOD:                            return cbTARGET_CFG_GET_RSSI_GOOD;
+	case ODIN_CFG_SET_RSSI_BAD:                             return cbTARGET_CFG_SET_RSSI_BAD;
+	case ODIN_CFG_GET_RSSI_BAD:                             return cbTARGET_CFG_GET_RSSI_BAD;
+	case ODIN_CFG_SET_SLEEP_TIMEOUT:                        return cbTARGET_CFG_SET_SLEEP_TIMEOUT;
+	case ODIN_CFG_GET_SLEEP_TIMEOUT:                        return cbTARGET_CFG_GET_SLEEP_TIMEOUT;
+	case ODIN_CFG_SET_GOOD_RSSI_YIELD_TMO:                  return cbTARGET_CFG_SET_GOOD_RSSI_YIELD_TMO;
+	case ODIN_CFG_GET_GOOD_RSSI_YIELD_TMO:                  return cbTARGET_CFG_GET_GOOD_RSSI_YIELD_TMO;
+	case ODIN_CFG_SET_BAD_RSSI_YIELD_TMO:                   return cbTARGET_CFG_SET_BAD_RSSI_YIELD_TMO;
+	case ODIN_CFG_GET_BAD_RSSI_YIELD_TMO:                   return cbTARGET_CFG_GET_BAD_RSSI_YIELD_TMO;
+	case ODIN_CFG_SET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT:    return cbTARGET_CFG_SET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT;
+	case ODIN_CFG_GET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT:    return cbTARGET_CFG_GET_ROAM_BLACKLIST_LAST_BSSID_TIMEOUT;
 	case ODIN_CFG_SET_FORCE_WORLD_MODE:                     return cbTARGET_CFG_SET_FORCE_WORLD_MODE;
 	case ODIN_CFG_SET_FORCE_WORLD_MODE:                     return cbTARGET_CFG_GET_FORCE_WORLD_MODE;
 	case ODIN_CFG_SET_TX_PACKET_ACK_TIMEOUT_WD:             return cbTARGET_CFG_SET_TX_PACKET_ACK_TIMEOUT_WD;
@@ -1961,10 +1961,10 @@ static cbTARGET_ConfigParams map_odin_config(target_config_params_e parameter)
 	case ODIN_CFG_GET_AP_STA_INACTIVITY_TIMEOUT:            return cbTARGET_CFG_GET_AP_STA_INACTIVITY_TIMEOUT;
 	case ODIN_CFG_SET_ROAMING_AREA_HYSTERESIS:              return cbTARGET_CFG_SET_ROAMING_AREA_HYSTERESIS;
 	case ODIN_CFG_GET_ROAMING_AREA_HYSTERESIS:              return cbTARGET_CFG_GET_ROAMING_AREA_HYSTERESIS;
-	case ODIN_CFG_SET_PMF_STA:                              return cbTARGET_CFG_SET_PMF_STA;//
-	case ODIN_CFG_GET_PMF_STA:                              return cbTARGET_CFG_GET_PMF_STA;//
-	case ODIN_CFG_SET_FT_MODE:                              return cbTARGET_CFG_SET_FT_MODE;//
-	case ODIN_CFG_GET_FT_MODE:                              return cbTARGET_CFG_GET_FT_MODE;//
+	case ODIN_CFG_SET_PMF_STA:                              return cbTARGET_CFG_SET_PMF_STA;
+	case ODIN_CFG_GET_PMF_STA:                              return cbTARGET_CFG_GET_PMF_STA;
+	case ODIN_CFG_SET_FT_MODE:                              return cbTARGET_CFG_SET_FT_MODE;
+	case ODIN_CFG_GET_FT_MODE:                              return cbTARGET_CFG_GET_FT_MODE;
     default:
         MBED_ASSERT(true);
     }
