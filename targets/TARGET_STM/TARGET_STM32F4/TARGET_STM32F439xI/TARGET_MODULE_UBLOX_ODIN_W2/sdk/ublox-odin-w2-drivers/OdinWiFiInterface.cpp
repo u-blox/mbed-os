@@ -29,6 +29,11 @@
 static const char *cert_data = NULL;
 #endif
 
+#ifdef CA_CERT_FILE
+#include CA_CERT_FILE
+#else
+static const char *ca_cert_data = NULL;
+#endif
 
 #define ODIN_WIFI_BSSID_CACHE           	(5)
 #define ODIN_WIFI_STA_DEFAULT_CONN_TMO  	(20000)
@@ -1574,20 +1579,27 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
         case NSAPI_SECURITY_EAP_TLS:
             cbMAIN_driverLock();
             enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_EAPTLS;
-            MBED_ASSERT(cert_data != NULL); // certificate not properly initialized by application
+            if((cert_data != NULL) && _debug)
+            {
+                printf("No client certificate found in root \r\n");
+            }
             status = eap_tls_conn_handler(cert_data, sizeof(cert_data), &connect_params, &enterpriseParams);
             cbMAIN_driverUnlock();
+            if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
             break;
 
         case NSAPI_SECURITY_PEAP:
             cbMAIN_driverLock();
             enterpriseParams.authMode =  cbWLAN_ENTERPRISE_MODE_PEAP;
-            //certLoadStatus = loadCACert(staConfig);
-
+            strncpy((char*)enterpriseParams.username, MBED_CONF_APP_PEAP_USERNAME, cbWLAN_MAX_USERNAME_LENGTH);
+            strncpy((char*)enterpriseParams.passphrase, MBED_CONF_APP_PEAP_PASSWORD, cbWLAN_MAX_USERNAME_LENGTH);
+            if((ca_cert_data != NULL) && _debug)
+            {
+                printf("No server certificate found in root \r\n");
+            }
+            status = eap_tls_conn_handler(ca_cert_data, sizeof(ca_cert_data), &connect_params, &enterpriseParams);
             cbMAIN_driverUnlock();
-            //if (OK(certLoadStatus)) {
-            //status = cbWLAN_connectEnterprise(&connect_params, &enterpriseParams);
-            //}
+            if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
             break;
     default:
         status = cbSTATUS_ERROR;
