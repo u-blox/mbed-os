@@ -46,6 +46,12 @@ struct wlan_status_connected_s;
 struct wlan_status_connection_failure_s;
 struct wlan_scan_indication_s;
 
+typedef struct {
+    const char  *client_cert;
+    const char  *client_prvt_key;
+    const char  *ca_cert;
+}auth_cert_s;
+
 /** OdinWiFiInterface class
  *  Implementation of the WiFiInterface for the ODIN-W2 module
  */
@@ -73,7 +79,16 @@ public:
      *  @return          0 on success, or error code on failure
      */
     virtual nsapi_error_t set_credentials(const char *ssid, const char *pass, nsapi_security_t security = NSAPI_SECURITY_NONE);
-    
+
+    /** Set the WiFi network credentials
+     *
+     *  @param client_cert      Pointer to client certificate
+     *  @param clitne_pvt_key   Pointer to client private key
+     *  @param ca_cert          Pointer to ca certificate
+     *  @return                 0 on success, or error code on failure
+     */
+    nsapi_error_t set_certificates(const char *client_cert, const char *clitne_pvt_key , const char *ca_cert );
+
     /** Set the WiFi network channel
      *
      *  @param channel   Channel on which the connection is to be made, or 0 for any (Default: 0)
@@ -92,10 +107,32 @@ public:
      *  @return          0 on success, or error code on failure
      */
     virtual nsapi_error_t connect(
-        const char *ssid,
-        const char *pass,
-        nsapi_security_t security = NSAPI_SECURITY_NONE,
-        uint8_t channel = 0);
+        const char          *ssid,
+        const char          *pass,
+        nsapi_security_t    security = NSAPI_SECURITY_NONE,
+        uint8_t             channel = 0);
+
+    /** Start the interface [local interface]
+     *
+     * Attempt to connect to a Wi-Fi network using EAP (EAP_TLS and PEAP).
+     *
+     *  @param ssid         Name of the network to connect to.
+     *  @param pass         Security passphrase to connect to the network.
+     *  @param security     Type of encryption for connection (Default: NSAPI_SECURITY_NONE).
+     *  @param channel      Channel to make the connection, or 0 for any (Default: 0).
+     *  @param auth_cert_s  struct contains pointer to client_certificate, client_private_key and ca_certificate (Default: NULL).
+     *  @param username     name of client registered with authentication server (Default: NULL).
+     *  @param password     password against user registered with authentication server (Default: NULL).
+     *  @return             NSAPI_ERROR_OK on success, or error code on failure.
+     */
+    nsapi_error_t connect(
+        const char          *ssid,
+        const char          *pass,
+        nsapi_security_t    security,
+        auth_cert_s         *cert_handle,
+        const char          *username = NULL,
+        const char          *user_pswd = NULL,
+        uint8_t             channel = 0);
 
     /** Start the interface
      *
@@ -353,7 +390,11 @@ private:
     nsapi_error_t wlan_connect(
             const char          *ssid,
             const char          *passwd,
-            nsapi_security_t    security);
+            nsapi_security_t    security,
+            auth_cert_s         *cert_handle = NULL,
+            const char          *username = NULL,
+            const char          *user_pswd = NULL,
+            uint8_t             channel = 0);
     nsapi_error_t wlan_ap_start(
             const char          *ssid,
             const char          *pass,
@@ -376,6 +417,7 @@ private:
 
     struct sta_s        _sta;
     struct ap_s         _ap;
+    auth_cert_s         _certs;
     char                _mac_addr_str[ODIN_WIFI_MAX_MAC_ADDR_STR];
 
     cbWLAN_StatusConnectedInfo      _wlan_status_connected_info;
