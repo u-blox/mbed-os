@@ -4481,9 +4481,7 @@
             "MBEDTLS_MD4_C",
             "MBEDTLS_MD5_C",
             "MBEDTLS_SHA1_C",
-            "MBED_MPU_CUSTOM",
-            "MBEDTLS_MPI_WINDOW_SIZE=3",
-            "MBEDTLS_MPI_MAX_SIZE=2048"
+            "MBED_MPU_CUSTOM"
         ],
         "device_has_add": [
             "CAN",
