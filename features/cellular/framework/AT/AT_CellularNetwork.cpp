@@ -299,7 +299,7 @@ nsapi_error_t AT_CellularNetwork::detach()
     _at.at_cmd_discard("+COPS", "=2");
 
     call_network_cb(NSAPI_STATUS_DISCONNECTED);
-
+    _at.lock();
     return _at.unlock_return_error();
 }
 

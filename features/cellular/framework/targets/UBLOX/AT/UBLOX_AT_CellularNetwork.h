@@ -18,6 +18,7 @@
 #ifndef UBLOX_AT_CELLULAR_NETWORK_H_
 #define UBLOX_AT_CELLULAR_NETWORK_H_
 
+#include "mbed_wait_api.h"
 #include "AT_CellularNetwork.h"
 
 namespace mbed {

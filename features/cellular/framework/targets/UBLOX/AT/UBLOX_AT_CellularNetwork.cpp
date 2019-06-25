@@ -35,27 +35,41 @@ nsapi_error_t UBLOX_AT_CellularNetwork::set_access_technology_impl(RadioAccessTe
 {
     nsapi_error_t ret = NSAPI_ERROR_OK;
 
+    _at.lock();
+    _at.cmd_start("AT+COPS=2");
+    _at.cmd_stop_read_resp();
+    wait_ms(200);
+    _at.clear_error();
+
     switch (opRat) {
-#if defined(TARGET_UBLOX_C030_U201) || defined(TARGET_UBLOX_C027)
         case RAT_GSM:
         case RAT_GSM_COMPACT:
-            break;
         case RAT_EGPRS:
+#if defined(TARGET_UBLOX_C030_U201)
+            _at.cmd_start("AT+URAT=0,0");
+            _at.cmd_stop_read_resp();
             break;
-#elif defined(TARGET_UBLOX_C030_U201)
+#elif defined(TARGET_UBLOX_C030_R412M)
+            _at.cmd_start("AT+URAT=9,8");
+            _at.cmd_stop_read_resp();
+            break;
+#endif
+#if defined(TARGET_UBLOX_C030_U201)
         case RAT_UTRAN:
-            break;
         case RAT_HSDPA:
-            break;
         case RAT_HSUPA:
-            break;
         case RAT_HSDPA_HSUPA:
+            _at.cmd_start("AT+URAT=2,2");
+            _at.cmd_stop_read_resp();
             break;
-#elif defined(TARGET_UBLOX_C030_R41XM)
+#elif defined(TARGET_UBLOX_C030_R412M)
         case RAT_CATM1:
+            _at.cmd_start("AT+URAT=7,8");
+            _at.cmd_stop_read_resp();
             break;
-#elif defined(TARGET_UBLOX_C030_R41XM) || defined(TARGET_UBLOX_C030_N211)
         case RAT_NB1:
+            _at.cmd_start("AT+URAT=8,7");
+            _at.cmd_stop_read_resp();
             break;
 #endif
         default: {
@@ -63,6 +77,13 @@ nsapi_error_t UBLOX_AT_CellularNetwork::set_access_technology_impl(RadioAccessTe
             ret = NSAPI_ERROR_UNSUPPORTED;
         }
     }
+
+#if defined(TARGET_UBLOX_C030_R412M)
+    _at.cmd_start("AT+CFUN=15");
+    _at.cmd_stop_read_resp();
+    wait_ms(1000);
+#endif
+    _at.unlock();
 
     return (ret);
 }
