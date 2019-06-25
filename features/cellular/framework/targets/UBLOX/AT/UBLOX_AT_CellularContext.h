@@ -40,7 +40,7 @@ private:
 
     /** The type of authentication to use.
      */
-    nsapi_security_t _auth;
+    AuthenticationType _auth;
 
     /** Connect the on board IP stack of the modem.
      *
@@ -58,14 +58,14 @@ private:
      *                 NSAPI_SECURITY_CHAP or NSAPI_SECURITY_UNKNOWN).
      * @return         True if successful, otherwise false.
      */
-    bool activate_profile(const char *apn, const char *username, const char *password);
+    bool activate_profile(const char *apn, const char *username, const char *password, AuthenticationType auth);
 
     /** Convert nsapi_security_t to the modem security numbers.
      *
      * @param nsapi_security      Security protocol.
      * @return                    Modem security numbers.
      */
-    int nsapi_security_to_modem_security(nsapi_security_t nsapi_security);
+    int nsapi_security_to_modem_security(AuthenticationType nsapi_security);
 
     /** Disconnect the on board IP stack of the modem.
      *

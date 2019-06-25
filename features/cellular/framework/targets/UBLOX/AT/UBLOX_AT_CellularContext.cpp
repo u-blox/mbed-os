@@ -25,7 +25,7 @@ UBLOX_AT_CellularContext::UBLOX_AT_CellularContext(ATHandler &at, CellularDevice
     AT_CellularContext(at, device, apn, cp_req, nonip_req)
 {
     // The authentication to use
-    _auth = NSAPI_SECURITY_UNKNOWN;
+    _auth = NOAUTH;
 }
 
 UBLOX_AT_CellularContext::~UBLOX_AT_CellularContext()
@@ -106,11 +106,11 @@ nsapi_error_t UBLOX_AT_CellularContext::open_data_channel()
         do {
             get_next_credentials(&config);
             if (_uname && _pwd) {
-                _auth = (*_uname && *_pwd) ? _auth : NSAPI_SECURITY_NONE;
+                _auth = (*_uname && *_pwd) ? _authentication_type : NOAUTH;
             } else {
-                _auth = NSAPI_SECURITY_NONE;
+                _auth = NOAUTH;
             }
-            success = activate_profile(_apn, _uname, _pwd);
+            success = activate_profile(_apn, _uname, _pwd, _auth);
         } while (!success && config && *config);
     } else {
         // If the profile is already active, we're good
@@ -124,7 +124,8 @@ nsapi_error_t UBLOX_AT_CellularContext::open_data_channel()
 
 bool UBLOX_AT_CellularContext::activate_profile(const char *apn,
                                                 const char *username,
-                                                const char *password)
+                                                const char *password,
+                                                AuthenticationType auth)
 {
     bool activated = false;
     bool success = false;
@@ -175,47 +176,38 @@ bool UBLOX_AT_CellularContext::activate_profile(const char *apn,
         _at.resp_start();
         _at.resp_stop();
 
-        // Set up the authentication protocol
-        // 0 = none
-        // 1 = PAP (Password Authentication Protocol)
-        // 2 = CHAP (Challenge Handshake Authentication Protocol)
-        for (int protocol = nsapi_security_to_modem_security(NSAPI_SECURITY_NONE);
-                success && (protocol <= nsapi_security_to_modem_security(NSAPI_SECURITY_CHAP)); protocol++) {
-            if ((_auth == NSAPI_SECURITY_UNKNOWN) || (nsapi_security_to_modem_security(_auth) == protocol)) {
-                _at.cmd_start("AT+UPSD=" PROFILE ",6,");
-                _at.write_int(protocol);
-                _at.cmd_stop();
-                _at.resp_start();
-                _at.resp_stop();
+        _at.cmd_start("AT+UPSD=" PROFILE ",6,");
+        _at.write_int(nsapi_security_to_modem_security(auth));
+        _at.cmd_stop();
+        _at.resp_start();
+        _at.resp_stop();
 
-                if (_at.get_last_error() == NSAPI_ERROR_OK) {
-                    // Activate, wait upto 30 seconds for the connection to be made
-                    _at.set_at_timeout(30000);
-                    _at.cmd_start("AT+UPSDA=" PROFILE ",3");
+        if (_at.get_last_error() == NSAPI_ERROR_OK) {
+            // Activate, wait upto 30 seconds for the connection to be made
+            _at.set_at_timeout(30000);
+            _at.cmd_start("AT+UPSDA=" PROFILE ",3");
+            _at.cmd_stop();
+            _at.resp_start();
+            _at.resp_stop();
+            _at.restore_at_timeout();
+
+            if (_at.get_last_error() == NSAPI_ERROR_OK) {
+                Timer t1;
+                t1.start();
+                while (!(t1.read() >= 180)) {
+                    _at.cmd_start("AT+UPSND=" PROFILE ",8");
                     _at.cmd_stop();
-                    _at.resp_start();
+                    _at.resp_start("+UPSND:");
+                    _at.skip_param(2);
+                    _at.read_int() ? activated = true : activated = false;
                     _at.resp_stop();
-                    _at.restore_at_timeout();
 
-                    if (_at.get_last_error() == NSAPI_ERROR_OK) {
-                        Timer t1;
-                        t1.start();
-                        while (!(t1.read() >= 180)) {
-                            _at.cmd_start("AT+UPSND=" PROFILE ",8");
-                            _at.cmd_stop();
-                            _at.resp_start("+UPSND:");
-                            _at.skip_param(2);
-                            _at.read_int() ? activated = true : activated = false;
-                            _at.resp_stop();
-
-                            if (activated) {  //If context is activated, exit while loop and return status
-                                break;
-                            }
-                            wait_ms(5000);    //Wait for 5 seconds and then try again
-                        }
-                        t1.stop();
+                    if (activated) {  //If context is activated, exit while loop and return status
+                        break;
                     }
+                    wait_ms(5000);    //Wait for 5 seconds and then try again
                 }
+                t1.stop();
             }
         }
     }
@@ -224,26 +216,32 @@ bool UBLOX_AT_CellularContext::activate_profile(const char *apn,
 }
 
 // Convert nsapi_security_t to the modem security numbers
-int UBLOX_AT_CellularContext::nsapi_security_to_modem_security(nsapi_security_t nsapi_security)
+int UBLOX_AT_CellularContext::nsapi_security_to_modem_security(AuthenticationType nsapi_security)
 {
     int modem_security = 3;
 
     switch (nsapi_security) {
-        case NSAPI_SECURITY_NONE:
+        case NOAUTH:
             modem_security = 0;
             break;
-        case NSAPI_SECURITY_PAP:
+        case PAP:
             modem_security = 1;
             break;
-        case NSAPI_SECURITY_CHAP:
+        case CHAP:
             modem_security = 2;
             break;
-        case NSAPI_SECURITY_UNKNOWN:
+#ifndef TARGET_UBLOX_C030_R41XM
+        case AUTOMATIC:
             modem_security = 3;
             break;
         default:
             modem_security = 3;
             break;
+#else
+        default:
+            modem_security = 0;
+            break;
+#endif
     }
 
     return modem_security;
