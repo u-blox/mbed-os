@@ -18,8 +18,10 @@
 #ifndef UBLOX_AT_CELLULAR_NETWORK_H_
 #define UBLOX_AT_CELLULAR_NETWORK_H_
 
+#include "CellularLog.h"
 #include "mbed_wait_api.h"
 #include "AT_CellularNetwork.h"
+#include "AT_CellularContext.h"
 
 namespace mbed {
 
@@ -30,6 +32,9 @@ public:
 
 protected:
     virtual nsapi_error_t set_access_technology_impl(RadioAccessTechnology opRat);
+
+private:
+    CellularDevice* device;
 };
 
 } // namespace mbed

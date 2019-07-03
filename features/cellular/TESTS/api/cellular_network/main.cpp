@@ -155,7 +155,12 @@ static void test_other()
 {
     TEST_ASSERT(nw->get_3gpp_error() == 0);
 
-    nsapi_error_t err = nw->set_access_technology(CellularNetwork::RAT_GSM);
+#ifdef TARGET_UBLOX_C030
+    nsapi_error_t err = nw->detach();
+    TEST_ASSERT(err == NSAPI_ERROR_OK);
+#endif
+
+    err = nw->set_access_technology(CellularNetwork::RAT_GSM);
     TEST_ASSERT(err == NSAPI_ERROR_OK || err == NSAPI_ERROR_UNSUPPORTED);
 
     // scanning of operators requires some delay before operation is allowed(seen with WISE_1570)

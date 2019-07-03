@@ -22,6 +22,7 @@ using namespace mbed;
 UBLOX_AT_CellularNetwork::UBLOX_AT_CellularNetwork(ATHandler &atHandler) : AT_CellularNetwork(atHandler)
 {
     _op_act = RAT_UNKNOWN;
+    device = CellularDevice::get_target_default_instance();
 }
 
 UBLOX_AT_CellularNetwork::~UBLOX_AT_CellularNetwork()
@@ -35,54 +36,49 @@ nsapi_error_t UBLOX_AT_CellularNetwork::set_access_technology_impl(RadioAccessTe
 {
     nsapi_error_t ret = NSAPI_ERROR_OK;
 
+    if (device->get_context_list()->get_connection_status() != NSAPI_STATUS_DISCONNECTED) {
+        tr_debug("RAT should only be set in detached state");
+        return NSAPI_ERROR_UNSUPPORTED;
+    }
     _at.lock();
-    _at.cmd_start("AT+COPS=2");
-    _at.cmd_stop_read_resp();
-    wait_ms(200);
-    _at.clear_error();
-
     switch (opRat) {
-        case RAT_GSM:
-        case RAT_GSM_COMPACT:
-        case RAT_EGPRS:
-#if defined(TARGET_UBLOX_C030_U201)
-            _at.cmd_start("AT+URAT=0,0");
-            _at.cmd_stop_read_resp();
-            break;
-#elif defined(TARGET_UBLOX_C030_R412M)
-            _at.cmd_start("AT+URAT=9,8");
-            _at.cmd_stop_read_resp();
-            break;
+    case RAT_EGPRS:
+#if defined (TARGET_UBLOX_C030_R412M)
+        _at.cmd_start("AT+URAT=9,8");
+        _at.cmd_stop_read_resp();
+        break;
 #endif
 #if defined(TARGET_UBLOX_C030_U201)
-        case RAT_UTRAN:
-        case RAT_HSDPA:
-        case RAT_HSUPA:
-        case RAT_HSDPA_HSUPA:
-            _at.cmd_start("AT+URAT=2,2");
-            _at.cmd_stop_read_resp();
-            break;
-#elif defined(TARGET_UBLOX_C030_R412M)
-        case RAT_CATM1:
-            _at.cmd_start("AT+URAT=7,8");
-            _at.cmd_stop_read_resp();
-            break;
-        case RAT_NB1:
-            _at.cmd_start("AT+URAT=8,7");
-            _at.cmd_stop_read_resp();
-            break;
+    case RAT_GSM:
+        _at.cmd_start("AT+URAT=0,0");
+        _at.cmd_stop_read_resp();
+        break;
+    case RAT_UTRAN:
+    case RAT_HSDPA:
+    case RAT_HSUPA:
+    case RAT_HSDPA_HSUPA:
+        _at.cmd_start("AT+URAT=2,2");
+        _at.cmd_stop_read_resp();
+        break;
+#elif defined(TARGET_UBLOX_C030_R41XM)
+    case RAT_CATM1:
+        _at.cmd_start("AT+URAT=7,8");
+        _at.cmd_stop_read_resp();
+        break;
+    case RAT_NB1:
+        _at.cmd_start("AT+URAT=8,7");
+        _at.cmd_stop_read_resp();
+        break;
 #endif
-        default: {
-            _op_act = RAT_UNKNOWN;
-            ret = NSAPI_ERROR_UNSUPPORTED;
-        }
+    default: {
+        _op_act = RAT_UNKNOWN;
+        ret = NSAPI_ERROR_UNSUPPORTED;
+    }
     }
 
-#if defined(TARGET_UBLOX_C030_R412M)
     _at.cmd_start("AT+CFUN=15");
     _at.cmd_stop_read_resp();
     wait_ms(1000);
-#endif
     _at.unlock();
 
     return (ret);

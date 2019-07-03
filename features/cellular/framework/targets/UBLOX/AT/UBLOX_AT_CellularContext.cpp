@@ -49,12 +49,41 @@ void UBLOX_AT_CellularContext::do_connect()
 {
     _at.lock();
     _cb_data.error = NSAPI_ERROR_NO_CONNECTION;
+    CellularNetwork::RadioAccessTechnology rat = read_radio_technology();
 
     // Attempt to establish a connection
-#ifdef TARGET_UBLOX_C030_R41XM
+#if defined (TARGET_UBLOX_C030_R410M)
     _cb_data.error = NSAPI_ERROR_OK;
+#elif defined (TARGET_UBLOX_C030_R412M)
+    if (rat == CellularNetwork::RadioAccessTechnology::RAT_EGPRS) {
+        if (!_is_context_active) {
+            _at.set_at_timeout(150*1000);
+            _at.cmd_start("AT+CGACT=1,1");
+            _at.cmd_stop();
+            _at.resp_start();
+            _at.resp_stop();
+
+            _at.cmd_start("AT+CGACT?");
+            _at.cmd_stop();
+            _at.resp_start("+CGACT:");
+            _at.skip_param(1);
+            _is_context_activated = _at.read_int();
+            _at.resp_stop();
+
+            _at.restore_at_timeout();
+            if (_is_context_activated == true) {
+                _cid = 1;
+                _is_context_active = true;
+                _cb_data.error = NSAPI_ERROR_OK;
+            }
+        }
+    } else if (rat == CellularNetwork::RadioAccessTechnology::RAT_CATM1 || rat == CellularNetwork::RadioAccessTechnology::RAT_NB1) {
+        _is_context_active = true;
+        _is_context_activated = true;
+        _cb_data.error = NSAPI_ERROR_OK;
+    }
 #else
-    _cb_data.error = open_data_channel();
+    _cb_data.error = define_context();
 #endif
     if (_cb_data.error != NSAPI_ERROR_OK) {
         // If new PSD context was created and failed to activate, delete it
@@ -72,7 +101,8 @@ void UBLOX_AT_CellularContext::do_connect()
     }
 }
 
-nsapi_error_t UBLOX_AT_CellularContext::open_data_channel()
+#ifndef TARGET_UBLOX_C030_R41XM
+nsapi_error_t UBLOX_AT_CellularContext::define_context()
 {
     bool success = false;
     int active = 0;
@@ -214,6 +244,7 @@ bool UBLOX_AT_CellularContext::activate_profile(const char *apn,
 
     return activated;
 }
+#endif
 
 // Convert nsapi_security_t to the modem security numbers
 int UBLOX_AT_CellularContext::nsapi_security_to_modem_security(AuthenticationType nsapi_security)
@@ -221,26 +252,26 @@ int UBLOX_AT_CellularContext::nsapi_security_to_modem_security(AuthenticationTyp
     int modem_security = 3;
 
     switch (nsapi_security) {
-        case NOAUTH:
-            modem_security = 0;
-            break;
-        case PAP:
-            modem_security = 1;
-            break;
-        case CHAP:
-            modem_security = 2;
-            break;
+    case NOAUTH:
+        modem_security = 0;
+        break;
+    case PAP:
+        modem_security = 1;
+        break;
+    case CHAP:
+        modem_security = 2;
+        break;
 #ifndef TARGET_UBLOX_C030_R41XM
-        case AUTOMATIC:
-            modem_security = 3;
-            break;
-        default:
-            modem_security = 3;
-            break;
+    case AUTOMATIC:
+        modem_security = 3;
+        break;
+    default:
+        modem_security = 3;
+        break;
 #else
-        default:
-            modem_security = 0;
-            break;
+    default:
+        modem_security = 0;
+        break;
 #endif
     }
 
@@ -294,6 +325,60 @@ void UBLOX_AT_CellularContext::get_next_credentials(char **config)
 const char *UBLOX_AT_CellularContext::get_gateway()
 {
     return get_ip_address();
+}
+
+const char* UBLOX_AT_CellularContext::get_apn() {
+    return _apn;
+}
+
+const char* UBLOX_AT_CellularContext::get_uname() {
+    return _uname;
+}
+
+const char* UBLOX_AT_CellularContext::get_pwd() {
+    return _pwd;
+}
+
+CellularContext::AuthenticationType UBLOX_AT_CellularContext::get_auth() {
+    return _authentication_type;
+}
+
+CellularNetwork::RadioAccessTechnology UBLOX_AT_CellularContext::read_radio_technology()
+{
+    int act;
+    CellularNetwork::RadioAccessTechnology rat;
+
+    _at.cmd_start("AT+URAT?");
+    _at.cmd_stop();
+    _at.resp_start("+URAT:");
+    act = _at.read_int();
+    _at.resp_stop();
+
+    switch (act) {
+    case 0:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_GSM;
+        break;
+    case 1:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_GSM;
+        break;
+    case 2:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_UTRAN;
+        break;
+    case 7:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_CATM1;
+        break;
+    case 8:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_NB1;
+        break;
+    case 9:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_EGPRS;
+        break;
+    default:
+        rat = CellularNetwork::RadioAccessTechnology::RAT_UNKNOWN;
+        break;
+    }
+
+    return rat;
 }
 
 } /* namespace mbed */
