@@ -755,7 +755,7 @@ OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_connect_fail_wait_disc
     cbRTSL_Status   error_code;
 
     cbMAIN_driverLock();
-    error_code = cbWLAN_disconnect();
+    error_code = cbWLAN_disconnect(handle);
     cbMAIN_driverUnlock();
 
     MBED_ASSERT(error_code == cbSTATUS_OK);
@@ -776,7 +776,7 @@ OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_wait_disconnect()
     cbRTSL_Status   error_code;
 
     cbMAIN_driverLock();
-    error_code = cbWLAN_disconnect();
+    error_code = cbWLAN_disconnect(handle);
     cbMAIN_driverUnlock();
 
     MBED_ASSERT(error_code == cbSTATUS_OK);
@@ -800,7 +800,7 @@ OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_ap_started()
 OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_ap_wait_stop()
 {
     cbMAIN_driverLock();
-    cbRTSL_Status status = cbWLAN_apStop();
+    cbRTSL_Status status = cbWLAN_apStop(handle);
     cbMAIN_driverUnlock();
 
     MBED_ASSERT(status == cbSTATUS_OK);
@@ -811,7 +811,7 @@ OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_ap_wait_stop()
 OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_ap_fail_wait_stop()
 {
     cbMAIN_driverLock();
-    cbRTSL_Status status = cbWLAN_apStop();
+    cbRTSL_Status status = cbWLAN_apStop(handle);
     cbMAIN_driverUnlock();
 
     MBED_ASSERT(status == cbSTATUS_OK);
@@ -1024,6 +1024,8 @@ void OdinWiFiInterface::handle_user_connect(user_connect_s *user_connect)
     if(error_code == NSAPI_ERROR_OK) {
         memset(&_wlan_status_connected_info, 0, sizeof(cbWLAN_StatusConnectedInfo));
         memset(&_wlan_status_disconnected_info, 0, sizeof(cbWLAN_StatusDisconnectedInfo));
+        _wlan_status_disconnected_info.handle = cbWLAN_DEFAULT_HANDLE;
+        _wlan_status_connected_info.handle = cbWLAN_DEFAULT_HANDLE;
 
         _state_sta = entry_wait_connect();
     }
@@ -1398,21 +1400,25 @@ void OdinWiFiInterface::handle_wlan_status_disconnected(void)
 
 		case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
 			_state_sta = S_STA_IDLE;
+			if(_wlan_status_disconnected_info.handle == cbWLAN_DEFAULT_HANDLE){
+				switch(_wlan_status_disconnected_info.reason) {
+						error_code = NSAPI_ERROR_NO_SSID;
+						break;
 
-			switch(_wlan_status_disconnected_info) {
-				case cbWLAN_STATUS_DISCONNECTED_AUTH_TIMEOUT:
-				case cbWLAN_STATUS_DISCONNECTED_MIC_FAILURE:
-					error_code = NSAPI_ERROR_AUTH_FAILURE;
-					break;
-				case cbWLAN_STATUS_DISCONNECTED_NO_BSSID_FOUND:
-				case cbWLAN_STATUS_DISCONNECTED_UNKNOWN:
-					error_code = NSAPI_ERROR_NO_CONNECTION;
-					break;
-				default:
-					error_code = NSAPI_ERROR_DEVICE_ERROR;
-					break;
+					case cbWLAN_STATUS_DISCONNECTED_AUTH_FAILURE:
+					case cbWLAN_STATUS_DISCONNECTED_ASSOC_FAILURE:
+					case cbWLAN_STATUS_DISCONNECTED_MIC_FAILURE:
+						error_code = NSAPI_ERROR_AUTH_FAILURE;
+						break;
+					case cbWLAN_STATUS_DISCONNECTED_NO_BSSID_FOUND:
+					case cbWLAN_STATUS_DISCONNECTED_UNKNOWN:
+						error_code = NSAPI_ERROR_NO_CONNECTION;
+						break;
+					default:
+						error_code = NSAPI_ERROR_DEVICE_ERROR;
+						break;
+				}
 			}
-
 			send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, error_code);
 			break;
 
@@ -1555,7 +1561,7 @@ void OdinWiFiInterface::init(bool debug = false)
     memset(&_wlan_status_connected_info, 0, sizeof(cbWLAN_StatusConnectedInfo));
     memset(&_wlan_status_disconnected_info, 0, sizeof(cbWLAN_StatusDisconnectedInfo));
 
-    _msg_pool = new MemoryPool<odin_wifi_msg_s, 7>();
+    _msg_pool = new MemoryPool<odin_wifi_msg_s, 8>();
 
     if(!_wlan_initialized) {
 
@@ -1656,7 +1662,7 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
     {
         case NSAPI_SECURITY_NONE:
             cbMAIN_driverLock();
-            status = cbWLAN_connectOpen(&connect_params);
+            handle = cbWLAN_connectOpen(&connect_params);
             cbMAIN_driverUnlock();
             break;
         case NSAPI_SECURITY_WPA:
@@ -1672,10 +1678,10 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
             status = cbWLAN_Util_PSKFromPWD(temp_passphrase, connect_params.ssid, wpa_connect_params.psk.key);
 
             if (status == cbSTATUS_OK) {
-                status = cbWLAN_connectWPAPSK(&connect_params, &wpa_connect_params);
+                handle = cbWLAN_connectWPAPSK(&connect_params, &wpa_connect_params);
             }
             cbMAIN_driverUnlock();
-            if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
+            if(_debug) {printf("cbWLAN_connect: %d\r\n", handle);}
             break;
 
         case NSAPI_SECURITY_EAP_TLS:
@@ -1685,7 +1691,7 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
             {
                 printf("No client certificate found in root \r\n");
             }
-            status = cb_eap_conn_handler(cert_handle->client_cert, cert_handle->client_prvt_key, &connect_params, &enterpriseParams);
+            handle = cb_eap_conn_handler(cert_handle->client_cert, cert_handle->client_prvt_key, &connect_params, &enterpriseParams);
             cbMAIN_driverUnlock();
             if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
             break;
@@ -1697,7 +1703,7 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
             strncpy((char*)enterpriseParams.passphrase, user_pswd, cbWLAN_MAX_USERNAME_LENGTH);
 
             /* cert_handle->ca_cert could be NULL if client don;t need to verify server */
-            status = cb_eap_conn_handler(cert_handle->ca_cert, NULL, &connect_params, &enterpriseParams);
+            handle = cb_eap_conn_handler(cert_handle->ca_cert, NULL, &connect_params, &enterpriseParams);
             cbMAIN_driverUnlock();
             if(_debug) {printf("cbWLAN_connect: %d\r\n", status);}
             break;
@@ -1709,7 +1715,7 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
         break;
     }
 
-    if(status != cbSTATUS_OK) {
+    if(status != cbSTATUS_OK || handle == cbWLAN_INVALID_HANDLE) {
         error_code = NSAPI_ERROR_UNSUPPORTED;
     }
 
@@ -1750,7 +1756,7 @@ nsapi_error_t OdinWiFiInterface::wlan_ap_start(
         switch (security) {
 			case NSAPI_SECURITY_NONE:
 				cbMAIN_driverLock();
-				status = cbWLAN_apStartOpen(&params);
+				handle = cbWLAN_apStartOpen(&params);
 				cbMAIN_driverUnlock();
 				break;
 
@@ -1769,7 +1775,7 @@ nsapi_error_t OdinWiFiInterface::wlan_ap_start(
 				status = cbWLAN_Util_PSKFromPWD(temp_passphrase, params.ssid, wpa_params.psk.key);
 
 				if (status == cbSTATUS_OK) {
-					status = cbWLAN_apStartWPAPSK(&params, &wpa_params);
+					handle = cbWLAN_apStartWPAPSK(&params, &wpa_params);
 				}
 				cbMAIN_driverUnlock();
 				break;
@@ -1779,7 +1785,7 @@ nsapi_error_t OdinWiFiInterface::wlan_ap_start(
 				break;
         }
 
-        if (status != cbSTATUS_OK) {
+        if (status != cbSTATUS_OK || handle == cbWLAN_INVALID_HANDLE) {
             error_code = NSAPI_ERROR_UNSUPPORTED;
         }
     }
