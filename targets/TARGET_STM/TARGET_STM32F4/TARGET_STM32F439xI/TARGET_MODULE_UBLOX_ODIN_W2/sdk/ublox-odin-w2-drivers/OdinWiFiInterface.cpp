@@ -1298,43 +1298,45 @@ void OdinWiFiInterface::handle_wlan_status_connected(wlan_status_connected_s *wl
     MBED_ASSERT(wlan_connect != 0);
 
     switch(_state_sta) {
-		case S_STA_CONNECTED:
-		case S_STA_WAIT_CONNECT:
-			_timer.stop();
+        case S_STA_CONNECTED:
+        case S_STA_WAIT_CONNECT:
+            _timer.stop();
 
-			if(_debug) {
-				printf("MBED_IPSTACK_ \r\n");
-			}
+            if(_debug) {
+                printf("MBED_IPSTACK_ \r\n");
+            }
 
-			error_code = _interface->bringup(_dhcp,
-						_ip_address[0] ? _ip_address : 0,
-						_netmask[0] ? _netmask : 0,
-						_gateway[0] ? _gateway : 0,
-						DEFAULT_STACK);
+            error_code = _interface->bringup(_dhcp,
+                        _ip_address[0] ? _ip_address : 0,
+                        _netmask[0] ? _netmask : 0,
+                        _gateway[0] ? _gateway : 0,
+                        DEFAULT_STACK);
 
 
-			if (error_code == NSAPI_ERROR_OK || error_code == NSAPI_ERROR_IS_CONNECTED) {
-				memcpy(&_wlan_status_connected_info, &(wlan_connect->info), sizeof(cbWLAN_StatusConnectedInfo));
-				_state_sta = S_STA_CONNECTED;
-				send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, NSAPI_ERROR_OK);
-			}
-			else {
-				_state_sta = entry_connect_fail_wait_disconnect();
-			}
-			break;
+            if (error_code == NSAPI_ERROR_OK || error_code == NSAPI_ERROR_IS_CONNECTED) {
+                memcpy(&_wlan_status_connected_info, &(wlan_connect->info), sizeof(cbWLAN_StatusConnectedInfo));
+                if(_state_sta != S_STA_CONNECTED){
+                    _state_sta = S_STA_CONNECTED;
+                    send_user_response_msg(ODIN_WIFI_MSG_USER_CONNECT, NSAPI_ERROR_OK);
+                }
+            }
+            else {
+                _state_sta = entry_connect_fail_wait_disconnect();
+            }
+            break;
 
-		case S_STA_DISCONNECTED_WAIT_CONNECT:
-			_state_sta = S_STA_CONNECTED;
-			break;
+        case S_STA_DISCONNECTED_WAIT_CONNECT:
+            _state_sta = S_STA_CONNECTED;
+            break;
 
-		case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
-		case S_STA_WAIT_DISCONNECT:
-			//Ignore
-			break;
+        case S_STA_CONNECTION_FAIL_WAIT_DISCONNECT:
+        case S_STA_WAIT_DISCONNECT:
+            //Ignore
+            break;
 
-		default:
-			MBED_ASSERT(FALSE);
-			break;
+        default:
+            MBED_ASSERT(FALSE);
+            break;
     }
 }
 
@@ -1561,7 +1563,7 @@ void OdinWiFiInterface::init(bool debug = false)
     memset(&_wlan_status_connected_info, 0, sizeof(cbWLAN_StatusConnectedInfo));
     memset(&_wlan_status_disconnected_info, 0, sizeof(cbWLAN_StatusDisconnectedInfo));
 
-    _msg_pool = new MemoryPool<odin_wifi_msg_s, 8>();
+    _msg_pool = new MemoryPool<odin_wifi_msg_s, 7>();
 
     if(!_wlan_initialized) {
 
