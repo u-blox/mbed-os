@@ -431,10 +431,10 @@ private:
     friend struct wlan_callb_s;
 
     Mutex                               _mutex;
-    Queue<odin_wifi_msg_s, 6>           _in_queue;
+    Queue<odin_wifi_msg_s, 10>          _in_queue;
     Queue<odin_wifi_msg_s, 1>           _out_queue;
     Queue<odin_wifi_msg_s, 1>           _cache_queue;
-    MemoryPool<odin_wifi_msg_s, 7>      *_msg_pool;
+    MemoryPool<odin_wifi_msg_s, 11>     *_msg_pool;
     Thread                              _thread;
     Timer                               _timer;
 

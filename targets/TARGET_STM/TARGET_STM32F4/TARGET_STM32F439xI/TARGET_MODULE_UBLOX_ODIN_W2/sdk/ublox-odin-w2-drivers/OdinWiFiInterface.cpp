@@ -758,7 +758,7 @@ OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_connect_fail_wait_disc
     error_code = cbWLAN_disconnect(handle);
     cbMAIN_driverUnlock();
 
-    MBED_ASSERT(error_code == cbSTATUS_OK);
+    // MBED_ASSERT(error_code == cbSTATUS_OK);      // A workaround added needs further investigation 
 
     return S_STA_CONNECTION_FAIL_WAIT_DISCONNECT;
 }
@@ -779,7 +779,7 @@ OdinWiFiInterface::OdinWifiState OdinWiFiInterface::entry_wait_disconnect()
     error_code = cbWLAN_disconnect(handle);
     cbMAIN_driverUnlock();
 
-    MBED_ASSERT(error_code == cbSTATUS_OK);
+    // MBED_ASSERT(error_code == cbSTATUS_OK);
 
     return S_STA_WAIT_DISCONNECT;
 }
@@ -1563,7 +1563,7 @@ void OdinWiFiInterface::init(bool debug = false)
     memset(&_wlan_status_connected_info, 0, sizeof(cbWLAN_StatusConnectedInfo));
     memset(&_wlan_status_disconnected_info, 0, sizeof(cbWLAN_StatusDisconnectedInfo));
 
-    _msg_pool = new MemoryPool<odin_wifi_msg_s, 7>();
+    _msg_pool = new MemoryPool<odin_wifi_msg_s, 11>();
 
     if(!_wlan_initialized) {
 
