@@ -386,7 +386,7 @@ nsapi_error_t OdinWiFiInterface::connect(
         return NSAPI_ERROR_PARAMETER;
     }
 
-    if((security == NSAPI_SECURITY_EAP_TLS) && (cert_handle->client_cert == NULL)) {
+    if((security == NSAPI_SECURITY_EAP_TLS) && (cert_handle->client_cert == NULL  || cert_handle->client_prvt_key == NULL)) {
         return NSAPI_ERROR_PARAMETER;
     }
 
