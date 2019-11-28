@@ -917,9 +917,9 @@ void OdinWiFiInterface::handle_in_msg(void)
 					break;
 
 				case cbWLAN_STATUS_CONNECTED:
-					flush_while_wlan_status_connected = true;
+					flush_drvr_ind_pkts = true;
 					handle_wlan_status_connected(&(msg->data.wlan_status_connected));
-					flush_while_wlan_status_connected = false;
+					flush_drvr_ind_pkts = false;
 					break;
 
 				case cbWLAN_SCAN_INDICATION:
@@ -1654,14 +1654,13 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
     cbRTSL_Status                       status = cbSTATUS_OK;
     cbWLAN_CommonConnectParameters      connect_params;
     cbWLAN_EnterpriseConnectParameters  enterpriseParams;
+    static cbWLAN_Handle handle = cbWLAN_DEFAULT_HANDLE;
 
     memset(&enterpriseParams, 0, sizeof(cbWLAN_EnterpriseConnectParameters));
     memset(&connect_params, 0, sizeof(cbWLAN_CommonConnectParameters));
 
     strncpy((char*)connect_params.ssid.ssid, ssid, cbWLAN_SSID_MAX_LENGTH);
     connect_params.ssid.ssidLength = strlen((const char*)connect_params.ssid.ssid);
-
-    static cbWLAN_Handle handle;
 
     switch (security)
     {
@@ -1720,7 +1719,6 @@ nsapi_error_t OdinWiFiInterface::wlan_connect(
         break;
     }
 
-    //emac.set_wifi_emac_handle(handle); // Eliminated this because upcoming state will update the handle before it is used anywhere - to be tested
     if(status != cbSTATUS_OK || handle == cbWLAN_INVALID_HANDLE) {
         error_code = NSAPI_ERROR_UNSUPPORTED;
     }
@@ -1741,6 +1739,8 @@ nsapi_error_t OdinWiFiInterface::wlan_ap_start(
     cbWLAN_CommonApParameters params;
     cbWLAN_WPAPSKApParameters wpa_params;
 
+    static cbWLAN_Handle handle = cbWLAN_DEFAULT_HANDLE;
+
     char temp_passphrase[cbWLAN_MAX_PASSPHRASE_LENGTH];
 
     memset(&params, 0, sizeof(cbWLAN_CommonApParameters));
@@ -1755,8 +1755,6 @@ nsapi_error_t OdinWiFiInterface::wlan_ap_start(
     cbMAIN_driverLock();
     status = cbWLAN_ioctl(cbWLAN_IOCTL_SET_AP_BEACON_INTERVAL, (void*)&beacon_interval);
     cbMAIN_driverUnlock();
-
-    static cbWLAN_Handle handle;
 
     if (status != cbSTATUS_OK) {
         error_code = NSAPI_ERROR_PARAMETER;
@@ -1836,12 +1834,12 @@ void OdinWiFiInterface::wlan_scan_indication(cbWLAN_ScanIndicationInfo *scan_inf
 
 void OdinWiFiInterface::wlan_status_indication(cbWLAN_StatusIndicationInfo status, void *data)
 {
-	if (!flush_while_wlan_status_connected) {
-		struct odin_wifi_msg_s* msg = _msg_pool->alloc();
-		MBED_ASSERT(msg != NULL);
+	if (!flush_drvr_ind_pkts) {
+        struct odin_wifi_msg_s* msg = _msg_pool->alloc();
+        MBED_ASSERT(msg != NULL);
 
-		msg->type = status;
-		memcpy(&(msg->data), data, sizeof(odin_wifi_msg_s::data_t));
+        msg->type = status;
+        memcpy(&(msg->data), data, sizeof(odin_wifi_msg_s::data_t));
 
 		osStatus ok = _in_queue.put(msg, 0);
 		MBED_ASSERT(ok == osOK);

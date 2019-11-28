@@ -293,8 +293,6 @@ public:
 
 private:
 
-    OdinWiFiEMAC &emac = OdinWiFiEMAC::get_instance();
-
     enum OdinWifiState {
         S_NOT_INITIALISED = 1,
         S_WAIT_START,
@@ -446,7 +444,10 @@ private:
     bool    _debug;
     int     _dbg_timeout;
 
-    bool flush_while_wlan_status_connected = false;
+    OdinWiFiEMAC &emac = OdinWiFiEMAC::get_instance();
+
+    // This flag is added to flush the packets that were coming in between while the status was connected hence causing message pool overflow
+    bool flush_drvr_ind_pkts = false;
 };
 
 #endif
