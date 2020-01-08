@@ -30,18 +30,20 @@ public:
     UBLOX_AT_CellularStack(ATHandler &atHandler, int cid, nsapi_ip_stack_t stack_type, AT_CellularDevice &device);
     virtual ~UBLOX_AT_CellularStack();
 
+#ifndef UBX_MDM_SARA_R41XM
     virtual const char *get_ip_address();
 
     virtual nsapi_error_t gethostbyname(const char *host,
                                         SocketAddress *address, nsapi_version_t version = NSAPI_UNSPEC, const char *interface_name = NULL);
+
+    virtual nsapi_error_t get_ip_address(SocketAddress *address);
+#endif
 
 protected:
     virtual nsapi_error_t socket_listen(nsapi_socket_t handle, int backlog);
 
     virtual nsapi_error_t socket_accept(nsapi_socket_t server,
                                         nsapi_socket_t *handle, SocketAddress *address = 0);
-
-protected: // AT_CellularStack
 
     /** The profile to use (on board the modem).
      */
